@@ -161,6 +161,7 @@ public class SensorBNO055IMUCalibration extends LinearOpMode
                 // different configuration file names for each.
                 String filename = "AdafruitIMUCalibration.json";
                 File file = AppUtil.getInstance().getSettingsFile(filename);
+                ReadWriteFile.readFile(file);
                 ReadWriteFile.writeFile(file, calibrationData.serialize());
                 telemetry.log().add("saved to '%s'", filename);
 

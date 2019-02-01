@@ -8,29 +8,18 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.R;
+import org.firstinspires.ftc.teamcode.utils.hmap;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TeleOp", group = "Competition")
 
 public class TeleOp extends OpMode {
-    private DcMotor leftWheelFront;
-    private DcMotor leftWheelBack;
-    private DcMotor rightWheelFront;
-    private DcMotor rightWheelBack;
-
-    private DcMotor rightArm;
-    private DcMotor leftArm;
-    private DcMotor armExtendRight;
-    private DcMotor armExtendLeft;
+    hmap hwmap = new hmap();
 
     private double nitro1;
     private double nitro2;
 
     boolean cos = false;
     boolean press = false;
-    private Servo rightLock;
-    private Servo leftLock;
-    private Servo intake;
-    private Servo intake2;
 
     private boolean isLocked = false;
 
@@ -46,32 +35,10 @@ public class TeleOp extends OpMode {
 
     @Override
     public void init() {
+        hwmap.init(hardwareMap);
+
         mySound= new SoundPool(1,AudioManager.STREAM_MUSIC,0);
         beepID = mySound.load(hardwareMap.appContext, R.raw.mario,1);
-
-        rightWheelFront = hardwareMap.dcMotor.get("rightWheel");
-        leftWheelFront = hardwareMap.dcMotor.get("leftWheel");
-        leftWheelBack = hardwareMap.dcMotor.get("leftWheel2");
-        rightWheelBack = hardwareMap.dcMotor.get("rightWheel2");
-
-        rightArm = hardwareMap.dcMotor.get("rightArm");
-        leftArm = hardwareMap.dcMotor.get("leftArm");
-        armExtendRight = hardwareMap.dcMotor.get("armExtend");
-        armExtendLeft = hardwareMap.dcMotor.get("armExtend2");
-
-        rightLock = hardwareMap.servo.get("rightLock");
-        leftLock = hardwareMap.servo.get("leftLock");
-        intake = hardwareMap.servo.get("intake");
-        intake2 = hardwareMap.servo.get("intake2");
-
-        rightLock.setPosition(.6);
-        leftLock.setPosition(.4);
-
-        armExtendLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        armExtendRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        leftArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
 
     }
 
@@ -95,38 +62,38 @@ public class TeleOp extends OpMode {
 
 
         //drive motors
-            rightWheelFront.setPower((-gamepad1.left_stick_y + gamepad1.right_stick_x) * nitro1);
-            rightWheelBack.setPower((-gamepad1.left_stick_y + gamepad1.right_stick_x) * nitro1);
-            leftWheelBack.setPower((gamepad1.left_stick_y + gamepad1.right_stick_x) * nitro1);
-            leftWheelFront.setPower((gamepad1.left_stick_y + gamepad1.right_stick_x) * nitro1);
+           hwmap.rw1.setPower((gamepad1.left_stick_y + gamepad1.right_stick_x) * nitro1);
+            hwmap.rw2.setPower((gamepad1.left_stick_y + gamepad1.right_stick_x) * nitro1);
+            hwmap.lw1.setPower((gamepad1.left_stick_y + gamepad1.right_stick_x) * nitro1);
+            hwmap.lw2.setPower((gamepad1.left_stick_y + gamepad1.right_stick_x) * nitro1);
 
         //arm extension motors
         if (!armPIDActive) {
-            armExtendRight.setPower(.5 * (-gamepad2.right_stick_y) * nitro2 * (1 - (gamepad2.left_trigger * .8)));
-            armExtendLeft.setPower(.5 * (gamepad2.right_stick_y) * nitro2 * (1 - (gamepad2.left_trigger * .8)));
+            hwmap.armExtendRight.setPower(.5 * (gamepad2.right_stick_y) * nitro2 * (1 - (gamepad2.left_trigger * .8)));
+            hwmap.armExtendLeft.setPower(.5 * (gamepad2.right_stick_y) * nitro2 * (1 - (gamepad2.left_trigger * .8)));
         }
 
         //intake
         if (gamepad2.left_bumper) {
             if (gamepad2.b) {
-                intake.setPosition(0.25);
+                hwmap.intake.setPosition(0.25);
             } else {
-                intake.setPosition(.75);
+                hwmap.intake.setPosition(.75);
             }
             telemetry.addData("test2", gamepad1.left_bumper);
         } else {
-            intake.setPosition(0);
+            hwmap.intake.setPosition(0);
         }
 
         if (gamepad2.right_bumper) {
             if (gamepad2.b) {
-                intake2.setPosition(0.25);
+                hwmap.intake2.setPosition(0.25);
             } else {
-                intake2.setPosition(0.75);
+                hwmap.intake2.setPosition(0.75);
             }
             telemetry.addData("test", gamepad1.right_bumper);
         } else {
-            intake2.setPosition(0);
+            hwmap.intake2.setPosition(0);
         }
 
         //ratchet stuff/arm
@@ -138,47 +105,38 @@ public class TeleOp extends OpMode {
         }
         if (isLocked) {
             if (gamepad2.left_stick_y < 0) {
-                rightArm.setPower(.5 * -gamepad2.left_stick_y * nitro2 * (1 - (gamepad2.left_trigger * .8)));
-                leftArm.setPower(.5 * gamepad2.left_stick_y * nitro2 * (1 - (gamepad2.left_trigger * .8)));
+                hwmap.rightArm.setPower(.5 * gamepad2.left_stick_y * nitro2 * (1 - (gamepad2.left_trigger * .8)));
+                hwmap.leftArm.setPower(.5 * gamepad2.left_stick_y * nitro2 * (1 - (gamepad2.left_trigger * .8)));
             } else {
-                rightArm.setPower(0);
-                leftArm.setPower(0);
+                hwmap.rightArm.setPower(0);
+                hwmap.leftArm.setPower(0);
             }
-
-            leftLock.setPosition(.25);
-            rightLock.setPosition(.4);
-
-
         }
         else if (!armPIDActive) {
             if (Math.abs(gamepad2.left_stick_y) > .02 || !cos) {
-                rightArm.setPower(.5 * -gamepad2.left_stick_y * nitro2 * (1 - (gamepad2.left_trigger * .8)));
-                leftArm.setPower(.5 * gamepad2.left_stick_y * nitro2 * (1 - (gamepad2.left_trigger * .8)));
+                hwmap.rightArm.setPower(.5 * gamepad2.left_stick_y * nitro2 * (1 - (gamepad2.left_trigger * .8)));
+                hwmap.leftArm.setPower(.5 * gamepad2.left_stick_y * nitro2 * (1 - (gamepad2.left_trigger * .8)));
             } else {
-                theta = (((double) leftArm.getCurrentPosition())-1600) / (-6800.0);
+                theta = (((double) hwmap.leftArm.getCurrentPosition())-1600) / (-6800.0);
                 theta = theta * 3.14159;
 
                 telemetry.addData("theta", theta);
                 telemetry.addData("cos:", Math.cos(theta));
-                leftArm.setPower(Math.cos(theta) * (.05+ .03*(armExtendLeft.getCurrentPosition()/1024)));
-                rightArm.setPower(-Math.cos(theta) * (.05+ .03*(armExtendLeft.getCurrentPosition()/1024)));
+                hwmap.leftArm.setPower(Math.cos(theta) * (.05+ .03*(hwmap.armExtendLeft.getCurrentPosition()/1024)));
+                hwmap.rightArm.setPower(Math.cos(theta) * (.05+ .03*(hwmap.armExtendLeft.getCurrentPosition()/1024)));
 
             }
-            leftLock.setPosition(0.37);
-            rightLock.setPosition(.32);
 
         }
 
+        //lock/unlock
+            hwmap.lock(isLocked);
+
         //reset encoders
 if(gamepad2.start){
-            leftArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            armExtendLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            armExtendRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            leftArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            armExtendRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            armExtendLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            hwmap.reset();
 }
-telemetry.addData("cos",cos);
+
 
 if(gamepad2.y && !press){
             cos=!cos;
@@ -191,18 +149,15 @@ else{
     press=false;
 }
 
+        telemetry.addData("cos",cos);
         telemetry.addLine()
-                .addData("IsLocked", isLocked)
-                .addData("leftArmEncoder: ", leftArm.getCurrentPosition())
-                .addData("rightArmEncoder: ", rightArm.getCurrentPosition())
-                .addData("armExtendRightEncoder: ", armExtendRight.getCurrentPosition())
-                .addData("armExtendLeftEncoder: ", armExtendLeft.getCurrentPosition());
+                .addData("dat", hwmap.print());
         telemetry.update();
 
         //setpoints
         if (gamepad2.dpad_up) {
             armSetPoint = -2600;
-            if (leftArm.getCurrentPosition() < armSetPoint + 500 && leftArm.getCurrentPosition() > armSetPoint - 500) {
+            if (hwmap.leftArm.getCurrentPosition() < armSetPoint + 500 && hwmap.leftArm.getCurrentPosition() > armSetPoint - 500) {
                 armExtendSetPoint = 1024;
             } else {
                 armExtendSetPoint = 33;
@@ -210,7 +165,7 @@ else{
             armPIDActive = true;
         } else if (gamepad2.dpad_down) {
             armSetPoint = -6286;
-            if (leftArm.getCurrentPosition() < armSetPoint + 500 && leftArm.getCurrentPosition() > armSetPoint - 500) {
+            if (hwmap.leftArm.getCurrentPosition() < armSetPoint + 500 && hwmap.leftArm.getCurrentPosition() > armSetPoint - 500) {
                 armExtendSetPoint = 625;
             } else {
                 armExtendSetPoint = 33;
@@ -231,16 +186,16 @@ else{
             double armKp = 0.002;
             double armExtendKp = 0.002;
 
-            int armError = (leftArm.getCurrentPosition()-1300) - armSetPoint;
-            int armExtendError = armExtendLeft.getCurrentPosition() - armExtendSetPoint;
+            int armError = (hwmap.leftArm.getCurrentPosition()-1300) - armSetPoint;
+            int armExtendError = hwmap.armExtendLeft.getCurrentPosition() - armExtendSetPoint;
 
             double armPower = (double) armError * armKp;
             double armExtendPower = (double) armExtendError * armExtendKp;
 
-            leftArm.setPower(armPower);
-            rightArm.setPower(-armPower);
-            armExtendLeft.setPower(armExtendPower);
-            armExtendRight.setPower(-armExtendPower);
+            hwmap.leftArm.setPower(armPower);
+            hwmap.rightArm.setPower(armPower);
+            hwmap.armExtendLeft.setPower(armExtendPower);
+            hwmap.armExtendRight.setPower(armExtendPower);
 
             telemetry.addData("Arm error", armError);
             telemetry.addData("Arm extend error", armExtendError);
