@@ -109,7 +109,7 @@ int intake=0;
         lw.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         mySound= new SoundPool(1,AudioManager.STREAM_MUSIC,0);
-        beepID = mySound.load(hardwareMap.appContext, R.raw.mission_nightwing,1);
+        //beepID = mySound.load(hardwareMap.appContext, R.raw.mission_nightwing,1);
 
         telemetry.addData("Status", "Initialized");
 
@@ -159,7 +159,7 @@ int intake=0;
             else{
                 intake=0;
             }
-            thing += "{"+rw.getCurrentPosition()+","+lw.getCurrentPosition()+","+ (int)(gyro.getHeading()*1000)+","+arm.getCurrentPosition()+","+armExtend.getCurrentPosition()+","+intake +"},";
+            thing += "{"+(rw.getCurrentPosition())+","+ (lw.getCurrentPosition())+","+ (int)(gyro.getHeading()*1000)+","+arm.getCurrentPosition()+","+armExtend.getCurrentPosition()+","+intake +"},";
             telemetry.addData("sent", "");
             runtime.reset();
         }
