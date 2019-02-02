@@ -33,6 +33,7 @@ import com.disnodeteam.dogecv.CameraViewDisplay;
 import com.disnodeteam.dogecv.DogeCV;
 import com.disnodeteam.dogecv.detectors.roverrukus.GoldDetector;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -44,7 +45,7 @@ import org.opencv.core.TickMeter;
 
 
 @Autonomous(name="GoldTestAuto2", group="DogeCV")
-
+@Disabled
 public class goldTestAuto2 extends OpMode {
     // Detector object
     private ElapsedTime runtime = new ElapsedTime();

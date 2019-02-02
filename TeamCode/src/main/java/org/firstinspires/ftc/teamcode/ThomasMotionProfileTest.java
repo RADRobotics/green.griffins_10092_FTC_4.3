@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import java.util.concurrent.TimeUnit;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "ThomasMotoinProfileTest", group = "Competition")
+
 public class ThomasMotionProfileTest extends OpMode {
     private DcMotor armExtendRight;
     //arm extend right

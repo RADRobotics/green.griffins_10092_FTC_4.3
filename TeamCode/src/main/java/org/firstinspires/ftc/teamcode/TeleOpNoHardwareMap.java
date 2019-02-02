@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import android.media.AudioManager;
 import android.media.SoundPool;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -11,7 +12,7 @@ import org.firstinspires.ftc.teamcode.R;
 import org.firstinspires.ftc.teamcode.utils.hmap;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TeleOpNoHardwareMap", group = "Competition")
-
+@Disabled
 public class TeleOpNoHardwareMap extends OpMode {
     hmap hwmap = new hmap();
     private DcMotor leftWheelFront;

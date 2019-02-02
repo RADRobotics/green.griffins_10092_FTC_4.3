@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import android.graphics.Color;
 import android.hardware.Sensor;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -32,6 +33,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
  */
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "RobotInOneWeekend", group = "Prototyping")
+@Disabled
 public class RobotInOneWeekend extends OpMode {
 
     //defines the various motors and servos in the robot-the drivetrain motors, arm motors, intake motor, and lock servos

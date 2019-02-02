@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import android.media.AudioManager;
 import android.media.SoundPool;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -10,7 +11,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "CompetitionRobotTeleOp", group = "Competition")
-
+@Disabled
 public class CompetitionRobotTeleOp extends OpMode {
     private DcMotor leftWheelFront;
     //front top left wheel

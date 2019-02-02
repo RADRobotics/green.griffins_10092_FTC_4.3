@@ -57,7 +57,7 @@ public class TeleOp extends OpMode {
             play = false;
             mySound.stop(streamID);
         }
-        nitro1 = 1 - (gamepad1.right_trigger * .4);
+        nitro1 = .6 + (gamepad1.right_trigger * .4) - (gamepad1.left_trigger*.5);
         nitro2 = 1 + (gamepad2.right_trigger);
 
 

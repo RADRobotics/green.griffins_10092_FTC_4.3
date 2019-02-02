@@ -27,27 +27,34 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.comp_code;
 
 import com.disnodeteam.dogecv.CameraViewDisplay;
 import com.disnodeteam.dogecv.DogeCV;
 import com.disnodeteam.dogecv.detectors.roverrukus.GoldDetector;
 import com.disnodeteam.dogecv.detectors.roverrukus.SamplingOrderDetector;
 import com.disnodeteam.dogecv.filters.HSVColorFilter;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.utils.hmap;
 
-@TeleOp(name="Sampling Order Example", group="DogeCV")
 
-public class SamplingOrderExample extends OpMode {
+@Autonomous(name="Auto test", group="DogeCV")
+
+public class Auto extends OpMode {
     // Detector object
     private SamplingOrderDetector detector;
-
+    SamplingOrderDetector.GoldLocation order;
+    private ElapsedTime runtime = new ElapsedTime();
+    hmap hwmap = new hmap();
+    int stage = 0;
 
     @Override
     public void init() {
+        hwmap.init(hardwareMap);
         telemetry.addData("Status", "DogeCV 2018.0 - Sampling Order Example");
 
         // Setup detector
@@ -73,6 +80,8 @@ public class SamplingOrderExample extends OpMode {
      */
     @Override
     public void init_loop() {
+        telemetry.update();
+        telemetry.addData("Current Order" , detector.getCurrentOrder().toString()); // The current result for the frame
     }
 
     /*
@@ -80,7 +89,9 @@ public class SamplingOrderExample extends OpMode {
      */
     @Override
     public void start() {
-
+        order = detector.getLastOrder();
+        hwmap.reset();
+        runtime.reset();
     }
 
 
@@ -89,8 +100,69 @@ public class SamplingOrderExample extends OpMode {
      */
     @Override
     public void loop() {
+        telemetry.update();
+        telemetry.addData("enc:  ", hwmap.print());
+        telemetry.addData("stage: ",stage);
         telemetry.addData("Current Order" , detector.getCurrentOrder().toString()); // The current result for the frame
-        telemetry.addData("Last Order" , detector.getLastOrder().toString()); // The last known result
+        telemetry.addData("Last Order" , order.toString()); // The last known result
+
+        if(stage==0){
+            hwmap.arm(-.5);
+            hwmap.lock(false);
+            if(hwmap.leftArm.getCurrentPosition()>200 || runtime.seconds()>2){
+                stage++;
+                hwmap.zero();
+                runtime.reset();
+
+            }
+        }
+        if(stage==1){
+            hwmap.arm(.05);
+            if(runtime.seconds()>4){
+                stage=0;
+                runtime.reset();
+                hwmap.zero();
+            }
+            if(hwmap.leftArm.getCurrentPosition()<-3500){
+                stage++;
+                hwmap.zero();
+                runtime.reset();
+            }
+        }
+        if(stage==2){
+            hwmap.arm(.25);
+            if(hwmap.leftArm.getCurrentPosition()<-4000|| runtime.seconds()>2){
+                stage++;
+                hwmap.zero();
+                runtime.reset();
+            }
+        }
+
+        if(stage==3){
+            hwmap.arm(-.05);
+            if(runtime.seconds()>3){
+                stage=-1;
+                hwmap.zero();
+                runtime.reset();
+            }
+            if(hwmap.leftArm.getCurrentPosition()>-1000){
+                stage++;
+                hwmap.zero();
+                runtime.reset();
+            }
+        }
+        if(stage==-1){
+            hwmap.arm(-1);
+            if(hwmap.leftArm.getCurrentPosition()>-3500){
+                stage=2;
+                hwmap.zero();
+                runtime.reset();
+            }
+        }
+        if(stage==4){
+
+        }
+
     }
 
     /*

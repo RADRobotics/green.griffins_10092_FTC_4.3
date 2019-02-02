@@ -65,6 +65,7 @@ public class recordAuto extends OpMode
 {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
+    private ElapsedTime totalTime = new ElapsedTime();
     hmap hwmap = new hmap();
 
     int intake=0;
@@ -103,6 +104,7 @@ public class recordAuto extends OpMode
     public void start() {
            // mySound.play(beepID,1,1,1,1,1);
             runtime.reset();
+            totalTime.reset();
     }
 
     /*
@@ -135,7 +137,7 @@ public class recordAuto extends OpMode
 //        }
 //        // Setup a variable for each drive wheel to save power level for telemetry
   telemetry.addData("encoders", hwmap.print());
-       telemetry.addData("Status", "Run Time: " + runtime.seconds());
+       telemetry.addData("Status", "Run Time: " + totalTime.seconds());
     }
 
     /*

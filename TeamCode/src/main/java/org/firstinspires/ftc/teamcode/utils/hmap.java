@@ -56,15 +56,37 @@ public class hmap
     public Servo intake2 = null;
 
     /* local OpMode members. */
-    HardwareMap hwMap           =  null;
+    private HardwareMap hwMap           =  null;
     public ElapsedTime period  = new ElapsedTime();
 
     /* Constructor */
     public hmap(){
 
     }
+    public void rs(double power){
+        rw1.setPower(power);
+        rw2.setPower(power);
+    }
+    public void ls(double power){
+        lw1.setPower(power);
+        lw2.setPower(power);
+    }
+    public void arm(double power){
+        rightArm.setPower(power);
+        leftArm.setPower(power);
+    }
+    public void zero(){
+        lw1.setPower(0);
+        lw2.setPower(0);
+        rw1.setPower(0);
+        rw2.setPower(0);
+        rightArm.setPower(0);
+        leftArm.setPower(0);
+        armExtendLeft.setPower(0);
+        armExtendRight.setPower(0);
+    }
     public String print(){
-        return "rw: " + rw1.getCurrentPosition() +" lw:" + lw1.getCurrentPosition() + "\n arm:" + leftArm.getCurrentPosition() + " armExtL:" + armExtendLeft.getCurrentPosition() + "armExtR" + armExtendRight.getCurrentPosition();
+        return "rw: " + rw1.getCurrentPosition() +" lw:" + lw1.getCurrentPosition() + "\n arm:" + leftArm.getCurrentPosition() + ",  armExtL: " + armExtendLeft.getCurrentPosition() + "armExtR: " + armExtendRight.getCurrentPosition() + "\ngyroH: "+ gyro.getHeading();
     }
     public void lock(boolean state){
         if(state){
@@ -77,6 +99,7 @@ public class hmap
         }
     }
     public void reset(){
+        gyro.reset();
         armExtendLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         armExtendRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         armExtendLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);

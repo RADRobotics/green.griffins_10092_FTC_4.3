@@ -1,4 +1,5 @@
 package org.firstinspires.ftc.teamcode;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -6,7 +7,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "CompetitionRobotTeleOpchase", group = "Competition")
-
+@Disabled
 public class CompetitionRobotTeleOpchase extends OpMode {
     private DcMotor leftWheelFront;
     //front top left wheel
