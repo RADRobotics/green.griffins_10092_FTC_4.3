@@ -116,6 +116,7 @@ public class ConceptSoundsASJava extends LinearOpMode {
             // say Silver each time gamepad X is pressed (This sound is a resource)
             if (silverFound && (isX = gamepad1.x) && !wasX) {
                 SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, silverSoundID);
+
                 telemetry.addData("Playing", "Resource Silver");
                 telemetry.update();
             }

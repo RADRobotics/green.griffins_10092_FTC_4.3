@@ -34,6 +34,7 @@ import com.disnodeteam.dogecv.DogeCV;
 import com.disnodeteam.dogecv.detectors.roverrukus.GoldDetector;
 import com.disnodeteam.dogecv.detectors.roverrukus.SamplingOrderDetector;
 import com.disnodeteam.dogecv.filters.HSVColorFilter;
+import com.qualcomm.ftccommon.SoundPlayer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -42,7 +43,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.utils.hmap;
 
 
-@Autonomous(name="Auto test", group="DogeCV")
+@Autonomous(name="Auto test Comp", group="DogeCV")
 
 public class Auto extends OpMode {
     // Detector object
@@ -51,11 +52,14 @@ public class Auto extends OpMode {
     private ElapsedTime runtime = new ElapsedTime();
     hmap hwmap = new hmap();
     int stage = 0;
+    int impossible;// = hardwareMap.appContext.getResources().getIdentifier("mission_nightwing", "raw", hardwareMap.appContext.getPackageName());
+    //int goldSoundID   = hardwareMap.appContext.getResources().getIdentifier("gold",   "raw", hardwareMap.appContext.getPackageName());
 
     @Override
     public void init() {
         hwmap.init(hardwareMap);
         telemetry.addData("Status", "DogeCV 2018.0 - Sampling Order Example");
+        impossible = hardwareMap.appContext.getResources().getIdentifier("mission_nightwing", "raw", hardwareMap.appContext.getPackageName());
 
         // Setup detector
         detector = new SamplingOrderDetector(); // Create the detector
@@ -89,7 +93,9 @@ public class Auto extends OpMode {
      */
     @Override
     public void start() {
+        SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, impossible);
         order = detector.getLastOrder();
+        //if(order== )
         hwmap.reset();
         runtime.reset();
     }

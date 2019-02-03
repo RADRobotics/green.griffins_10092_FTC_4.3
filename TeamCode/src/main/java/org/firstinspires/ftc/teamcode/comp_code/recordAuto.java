@@ -83,6 +83,7 @@ public class recordAuto extends OpMode
     @Override
     public void init() {
         hwmap.init(hardwareMap);
+        hwmap.initGyro();
         hwmap.reset();
        // mySound= new SoundPool(1,AudioManager.STREAM_MUSIC,0);
         //beepID = mySound.load(hardwareMap.appContext, R.raw.mission_nightwing,1);
@@ -112,6 +113,8 @@ public class recordAuto extends OpMode
      */
     @Override
     public void loop() {
+
+
         if(runtime.seconds()>.025){
             //list.add(runtime2.seconds() + " " + rw.getCurrentPosition() + " " + lw.getCurrentPosition());
             //thing += "s:"+runtime2.seconds() + " r:" + rw.getCurrentPosition() + " l:" + lw.getCurrentPosition() + "; ";
@@ -127,7 +130,7 @@ public class recordAuto extends OpMode
             else{
                 intake2=0;
             }
-            thing += "{"+(hwmap.rw1.getCurrentPosition())+","+ (hwmap.lw1.getCurrentPosition())+","+ (int)(hwmap.gyro.getHeading()*1000)+","+hwmap.leftArm.getCurrentPosition()+","+hwmap.armExtendLeft.getCurrentPosition()+","+intake +","+ intake2 +"},";
+            thing += ""+ (hwmap.rw1.getCurrentPosition())+"-"+ (hwmap.lw1.getCurrentPosition())+"-"+ (int)(hwmap.gyro.getHeading()*1000)+"-"+hwmap.leftArm.getCurrentPosition()+"-"+hwmap.armExtendLeft.getCurrentPosition()+"-"+intake +"-"+ intake2 +"@";
             telemetry.addData("sent", "");
             runtime.reset();
         }

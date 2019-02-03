@@ -86,7 +86,7 @@ public class hmap
         armExtendRight.setPower(0);
     }
     public String print(){
-        return "rw: " + rw1.getCurrentPosition() +" lw:" + lw1.getCurrentPosition() + "\n arm:" + leftArm.getCurrentPosition() + ",  armExtL: " + armExtendLeft.getCurrentPosition() + "armExtR: " + armExtendRight.getCurrentPosition() + "\ngyroH: "+ gyro.getHeading();
+        return "rw: " + rw1.getCurrentPosition() +" lw:" + lw1.getCurrentPosition() + "\n lArm:" + leftArm.getCurrentPosition() + ", rArm: "+ rightArm.getCurrentPosition()+",  armExtL: " + armExtendLeft.getCurrentPosition() + "armExtR: " + armExtendRight.getCurrentPosition();
     }
     public void lock(boolean state){
         if(state){
@@ -99,7 +99,6 @@ public class hmap
         }
     }
     public void reset(){
-        gyro.reset();
         armExtendLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         armExtendRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         armExtendLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -107,6 +106,8 @@ public class hmap
 
         leftArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         leftArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         rw1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rw1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -115,8 +116,11 @@ public class hmap
         lw1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
     /* Initialize standard Hardware interfaces */
+    public void initGyro(){
+        gyro = new gyroCompass(hwMap);
+    }
     public void init(HardwareMap ahwMap) {
-        gyro = new gyroCompass(ahwMap);
+
         // Save reference to Hardware map
         hwMap = ahwMap;
 
@@ -140,16 +144,27 @@ public class hmap
         armExtendRight.setDirection(DcMotorSimple.Direction.REVERSE);
         rightArm.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        rw1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rw2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        lw1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        lw2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        armExtendRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        armExtendLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         armExtendLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         armExtendRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         leftArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightArm.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
         rw1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rw2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         lw1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         lw2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
     }
  }
 

@@ -4,16 +4,25 @@ import android.media.AudioManager;
 import android.media.SoundPool;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.ReadWriteFile;
 
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.teamcode.R;
 import org.firstinspires.ftc.teamcode.utils.hmap;
 
-@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TeleOp", group = "Competition")
+import java.io.File;
 
-public class TeleOp extends OpMode {
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "record_auto_teleop", group = "Competition")
+
+public class Record_auto_TeleOp extends OpMode {
     hmap hwmap = new hmap();
+
+    private ElapsedTime runtime = new ElapsedTime();
+    private ElapsedTime totalTime = new ElapsedTime();
+    int intake=0;
+    int intake2=0;
+    String thing = "";
 
     private double nitro1;
     private double nitro2;
@@ -33,18 +42,86 @@ public class TeleOp extends OpMode {
     int streamID;
     boolean play = false;
 
+    int record = 0;
     @Override
     public void init() {
         hwmap.init(hardwareMap);
-
+        //hwmap.initGyro();
+        hwmap.reset();
         mySound= new SoundPool(1,AudioManager.STREAM_MUSIC,0);
         beepID = mySound.load(hardwareMap.appContext, R.raw.mario,1);
 
     }
-
     @Override
     public void loop() {
 
+
+        if((gamepad1.right_stick_button || gamepad2.right_stick_button) && record==0){
+            record =1;
+        }
+        if(record==1 && !gamepad1.right_stick_button && !gamepad2.right_stick_button){
+            record=2;
+        }
+        if(record==0){
+            telemetry.addData("Press right_stick_button to begin recording","");
+        }
+        if(record==2){
+            if((gamepad1.right_stick_button || gamepad2.right_stick_button)){
+                record=3;
+            }
+            telemetry.addData("recording, runtime: ",totalTime.seconds());
+            telemetry.addData("press right_stick_button to stop recording","");
+            if(runtime.seconds()>.025){
+                //list.add(runtime2.seconds() + " " + rw.getCurrentPosition() + " " + lw.getCurrentPosition());
+                //thing += "s:"+runtime2.seconds() + " r:" + rw.getCurrentPosition() + " l:" + lw.getCurrentPosition() + "; ";
+                if(gamepad2.right_bumper){
+                    intake=1;
+                }
+                else{
+                    intake=0;
+                }
+                if(gamepad2.left_bumper){
+                    intake2=1;
+                }
+                else{
+                    intake2=0;
+                }
+                //6
+                thing += (hwmap.rw1.getCurrentPosition())+","+ (hwmap.lw1.getCurrentPosition())+","+ 0+","+hwmap.leftArm.getCurrentPosition()+","+hwmap.armExtendLeft.getCurrentPosition()+","+intake +","+ intake2 +"@";//hwmap.gyro.getHeading()*1000
+                telemetry.addData("sent", "");
+                runtime.reset();
+            }
+        }
+        if(record==3){
+            if(gamepad1.x ||gamepad2.x){
+                String filename = "left.csv";
+                File file = AppUtil.getInstance().getSettingsFile(filename);
+                ReadWriteFile.writeFile(file, thing);
+                telemetry.log().add("saved to '%s'", filename);
+                record=0;
+            }
+            if(gamepad1.a || gamepad2.a){
+                String filename = "center.csv";
+                File file = AppUtil.getInstance().getSettingsFile(filename);
+                ReadWriteFile.writeFile(file, thing);
+                telemetry.log().add("saved to '%s'", filename);
+                record=0;
+            }
+            if(gamepad1.b || gamepad2.b){
+                String filename = "right.csv";
+                File file = AppUtil.getInstance().getSettingsFile(filename);
+                ReadWriteFile.writeFile(file, thing);
+                telemetry.log().add("saved to '%s'", filename);
+                record=0;
+            }
+            if(gamepad1.y || gamepad2.y){
+                telemetry.log().add("Deleted");
+                thing="";
+                record=0;
+            }
+            telemetry.addData("press X to save to LEFT, A to CENTER, B to RIGHT\npress Y to DELETE","");
+        }
+        telemetry.addData("recordvar",record);
         //mario sounds nitro!!!
         if((gamepad1.right_trigger>.1 || gamepad2.right_trigger>.1) && play==false){
            streamID= mySound.play(beepID,1,1,1,-1,1);
@@ -152,6 +229,7 @@ else{
         telemetry.addData("cos",cos);
         telemetry.addLine()
                 .addData("dat", hwmap.print());
+        //telemetry.addData("gyro",hwmap.gyro.getHeading());
         telemetry.update();
 
         //setpoints

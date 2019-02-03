@@ -33,49 +33,39 @@ import com.disnodeteam.dogecv.CameraViewDisplay;
 import com.disnodeteam.dogecv.DogeCV;
 import com.disnodeteam.dogecv.detectors.roverrukus.GoldDetector;
 import com.disnodeteam.dogecv.detectors.roverrukus.SamplingOrderDetector;
-import com.disnodeteam.dogecv.detectors.roverrukus.SilverDetector;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.disnodeteam.dogecv.filters.HSVColorFilter;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
-import org.opencv.core.Point;
-import org.opencv.core.Rect;
-import org.opencv.core.Size;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 
-@TeleOp(name="GoldTest", group="DogeCV")
+@TeleOp(name="Sampling Order Example", group="DogeCV")
 
-public class goldTest extends OpMode {
+public class SamplingOrderExample extends OpMode {
     // Detector object
-    private GoldDetector detector;
-    SamplingOrderDetector.GoldLocation order = SamplingOrderDetector.GoldLocation.LEFT;;
-    double alignSize=120;
-    double alignX    = (640 / 2) +0; // Center point in X Pixels
-    double alignXMin = alignX - (alignSize / 2); // Min X Pos in pixels
-    double alignXMax = alignX +(alignSize / 2); // Max X pos in pixels
+    private SamplingOrderDetector detector;
 
-    boolean aligned = false;
+
     @Override
     public void init() {
-        telemetry.addData("Status", "DogeCV 2018.0 - Gold Detector test");
+        telemetry.addData("Status", "DogeCV 2018.0 - Sampling Order Example");
 
         // Setup detector
-        detector = new GoldDetector(); // Create detector
-        detector.setAdjustedSize(new Size(480, 270)); // Set detector size
+        detector = new SamplingOrderDetector(); // Create the detector
         detector.init(hardwareMap.appContext, CameraViewDisplay.getInstance(),1,false); // Initialize detector with app context and camera
-        detector.useDefaults(); // Set default detector settings
-        // Optional tuning
+        detector.useDefaults(); // Set detector to use default settings
 
         detector.downscale = 0.4; // How much to downscale the input frames
 
+        // Optional tuning
         detector.areaScoringMethod = DogeCV.AreaScoringMethod.MAX_AREA; // Can also be PERFECT_AREA
         //detector.perfectAreaScorer.perfectArea = 10000; // if using PERFECT_AREA scoring
-        detector.maxAreaScorer.weight = 0.005;
+        detector.maxAreaScorer.weight = 0.001;
 
-        detector.ratioScorer.weight = 5;
+        detector.ratioScorer.weight = 15;
         detector.ratioScorer.perfectRatio = 1.0;
-        detector.enable(); // Start detector
 
+        detector.enable(); // Start detector
     }
 
     /*
@@ -83,21 +73,6 @@ public class goldTest extends OpMode {
      */
     @Override
     public void init_loop() {
-        Rect bestRect = detector.getFoundRect();
-        double xPos = bestRect.x + (bestRect.width / 2);
-        telemetry.addData("pos:",order.toString());
-        if (xPos > 0) {
-            if (xPos < 213) {
-                order= SamplingOrderDetector.GoldLocation.LEFT;
-            } else if (xPos < 427) {
-                order= SamplingOrderDetector.GoldLocation.CENTER;
-            } else if (xPos < 640) {
-                order= SamplingOrderDetector.GoldLocation.RIGHT;
-            }
-        }
-        else{
-
-        }
     }
 
     /*
@@ -108,32 +83,14 @@ public class goldTest extends OpMode {
 
     }
 
+
     /*
      * Code to run REPEATEDLY when the driver hits PLAY
      */
     @Override
     public void loop() {
-        telemetry.addData("pos:",order.toString());
-//        telemetry.addData("IsAligned" , detector.getAligned()); // Is the bot aligned with the gold mineral?
-//        telemetry.addData("X Pos" , detector.getXPosition()); // Gold X position.
-
-        Point screenpos = detector.getScreenPosition();
-        Rect bestRect = detector.getFoundRect();
-
-        double xPos = bestRect.x + (bestRect.width / 2);
-
-        if(xPos < alignXMax && xPos > alignXMin){
-            aligned = true;
-        }else{
-            aligned = false;
-        }
-        telemetry.addData("aligned ",aligned);
-
-        telemetry.addData("xpos ",xPos);
-        telemetry.addData("amax ",alignXMax);
-        telemetry.addData("amin ",alignXMin);
-        telemetry.update();
-
+        telemetry.addData("Current Order" , detector.getCurrentOrder().toString()); // The current result for the frame
+        telemetry.addData("Last Order" , detector.getLastOrder().toString()); // The last known result
     }
 
     /*
