@@ -33,6 +33,7 @@ import com.disnodeteam.dogecv.CameraViewDisplay;
 import com.disnodeteam.dogecv.DogeCV;
 import com.disnodeteam.dogecv.detectors.roverrukus.GoldDetector;
 import com.disnodeteam.dogecv.detectors.roverrukus.SamplingOrderDetector;
+import com.qualcomm.ftccommon.SoundPlayer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -97,8 +98,10 @@ int[][] dataCenter;
 
     double Kf = 0.009;
 double pow = 0;
+int impossible;
     @Override
     public void init() {
+        impossible = hardwareMap.appContext.getResources().getIdentifier("mission_nightwing", "raw", hardwareMap.appContext.getPackageName());
 
         telemetry.addData("reading left...","");
         String readfile = "left.csv";
@@ -192,6 +195,7 @@ double pow = 0;
      */
     @Override
     public void start() {
+        SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, impossible);
         //order = detector.getLastOrder();
         //if(order== )
         if(order==SamplingOrderDetector.GoldLocation.LEFT){
@@ -222,9 +226,9 @@ double pow = 0;
 telemetry.addData("runtime",runtime);
         telemetry.addData("pow",pow);
         if(stage==0){
-            pow=-.4;
+            pow=.5;
             hwmap.lock(false);
-            if(hwmap.leftArm.getCurrentPosition()>300|| runtime.seconds()>2){
+            if(hwmap.leftArm.getCurrentPosition()<-300|| runtime.seconds()>2){
                 stage=1;
                 //hwmap.leftArm.setPower(0);
                 //hwmap.rightArm.setPower(0);
@@ -234,13 +238,13 @@ telemetry.addData("runtime",runtime);
         }
         if(stage==1){
             //hwmap.arm(.05);
-           pow=0.05;
+           pow=-0.25;
 //            if(runtime.seconds()>2 && hwmap.leftArm.getCurrentPosition()>-100){
 //                stage=0;
 //                runtime.reset();
 //                hwmap.zero();
 //            }
-            if(hwmap.leftArm.getCurrentPosition()<-3000){
+            if(hwmap.leftArm.getCurrentPosition()>3000){
                 stage++;
                // hwmap.leftArm.setPower(0);
                 //hwmap.rightArm.setPower(0);
@@ -248,8 +252,8 @@ telemetry.addData("runtime",runtime);
             }
         }
         if(stage==2){
-            pow=.2;
-            if(hwmap.leftArm.getCurrentPosition()<-3500|| runtime.seconds()>5){
+            pow=-.5;
+            if(hwmap.leftArm.getCurrentPosition()>4000|| runtime.seconds()>5){
                 stage++;
                 //hwmap.leftArm.setPower(0);
                 //hwmap.rightArm.setPower(0);
@@ -258,28 +262,27 @@ telemetry.addData("runtime",runtime);
         }
 
         if(stage==3){
-            pow=-.1;
-//            if(runtime.seconds()>8 && hwmap.leftArm.getCurrentPosition()<-3000){
-//                stage=-1;
+            pow=.35;
+            if(runtime.seconds()>4){
+                stage=-1;
 //                hwmap.zero();
-//                runtime.reset();
-//            }
-            if(hwmap.leftArm.getCurrentPosition()>-300){
+                runtime.reset();
+            }
+            if(hwmap.leftArm.getCurrentPosition()<300){
                 stage++;
                 pow = 0;
                 runtime.reset();
             }
         }
-        hwmap.leftArm.setPower(pow);
-        hwmap.rightArm.setPower(pow);
-//        if(stage==-1){
-//            hwmap.arm(-1);
-//            if(hwmap.leftArm.getCurrentPosition()>-2500){
-//                stage=1;
-//                hwmap.zero();
-//                runtime.reset();
-//            }
-//        }
+        hwmap.arm(pow);
+        if(stage==-1){
+            pow=1;
+            if(hwmap.leftArm.getCurrentPosition()<3000){
+                stage=2;
+                //hwmap.zero();
+                runtime.reset();
+            }
+        }
         if(stage==4){
         if (runtime.seconds() > .025) {
             setL = data[pos][1];
