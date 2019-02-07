@@ -144,10 +144,10 @@ public class hmap
         armExtendRight.setDirection(DcMotorSimple.Direction.REVERSE);
         rightArm.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        rw1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rw2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        lw1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        lw2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        //rw1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        //rw2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        //lw1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        //lw2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
