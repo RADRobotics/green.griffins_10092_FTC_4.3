@@ -190,8 +190,8 @@ if(step==-2){
 
                     calcNextTargetPos(speedL,speedR, 1);
 
-                    if((pos+1)<data.length) {
-                        //pos++;
+                    if((pos+2)<data.length) {
+                        pos++;
                     }
 
                     runtime.reset();
@@ -224,12 +224,16 @@ if(step==-2){
                 //double forwardPower = -adjustedYError*0.05;
                 //double anglePower = -adjustedXError*0.08 - angleError*0.8;
 
-                if(adjustedYError < 0){
+                if(adjustedYError > 0){
                     adjustedXError = -adjustedXError;
                 }
 
+                if(Math.abs(adjustedYError)<1){
+                    adjustedXError = (adjustedXError)*(Math.abs(adjustedYError));
+                }
+
                 double forwardPower = -adjustedYError*0.1;
-                double anglePower = -adjustedXError*0.1 - angleError*1;
+                double anglePower = -adjustedXError*0.1 - angleError*1.5;
 
                 if(gamepad1.y){
                     pr = forwardPower + anglePower;
@@ -636,7 +640,7 @@ if(step==-2){
 
     public void calcNextTargetPos(double leftSpeed, double rightSpeed, double timeStep){
         timeStep = 1;
-        double driveBaseWidth = 14.4;
+        double driveBaseWidth = 14.4/2.0;
 
         double encoderTicksPerMotorRev = 28;
         double gearRatio = (1.0/9.0);
@@ -663,10 +667,10 @@ if(step==-2){
             changeY  = 0;
             changeA = (-(leftSpeed*timeStep)/(driveBaseWidth))*angleAdjust;
         }else{
-            double radius = ((rightSpeed + leftSpeed)/(rightSpeed - leftSpeed))*driveBaseWidth;
+            double radius = (driveBaseWidth/((rightSpeed/leftSpeed)-1))+driveBaseWidth/2;//((rightSpeed + leftSpeed)/(rightSpeed - leftSpeed))*driveBaseWidth;
             changeX = (-radius * Math.cos(centerDistance/radius))+radius;
             changeY = radius * Math.sin(centerDistance/radius);
-            changeA = (centerDistance/(radius*2))*angleAdjust;
+            changeA = (centerDistance/(radius));
         }
 
         sumTargetX += Math.cos(sumTargetAngle)*changeX + Math.sin(sumTargetAngle)*changeY;
@@ -677,7 +681,7 @@ if(step==-2){
 
     public void calcNextPos(double leftSpeed, double rightSpeed, double timeStep){
         timeStep = 1;
-        double driveBaseWidth = 14.4;
+        double driveBaseWidth = 14.4/2.0;
 
         double encoderTicksPerMotorRev = 28;
         double gearRatio = (1.0/9.0);
@@ -704,10 +708,10 @@ if(step==-2){
             changeY  = 0;
             changeA = (-(leftSpeed*timeStep)/(driveBaseWidth))*angleAdjust;
         }else{
-            double radius = ((rightSpeed + leftSpeed)/(rightSpeed - leftSpeed))*driveBaseWidth;
+            double radius = (driveBaseWidth/((rightSpeed/leftSpeed)-1))+driveBaseWidth/2;//((rightSpeed + leftSpeed)/(rightSpeed - leftSpeed))*driveBaseWidth;
             changeX = (-radius * Math.cos(centerDistance/radius))+radius;
             changeY = radius * Math.sin(centerDistance/radius);
-            changeA = (centerDistance/(radius*2))*angleAdjust;
+            changeA = (centerDistance/(radius));
         }
 
         sumX += Math.cos(sumAngle)*changeX + Math.sin(sumAngle)*changeY;
