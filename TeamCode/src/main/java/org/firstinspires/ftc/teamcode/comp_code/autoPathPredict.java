@@ -29,6 +29,10 @@
 
 package org.firstinspires.ftc.teamcode.comp_code;
 
+import android.media.AudioManager;
+import android.media.SoundPool;
+import android.view.SoundEffectConstants;
+
 import com.disnodeteam.dogecv.CameraViewDisplay;
 import com.disnodeteam.dogecv.DogeCV;
 import com.disnodeteam.dogecv.detectors.roverrukus.GoldDetector;
@@ -39,7 +43,9 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.ReadWriteFile;
 
+import org.firstinspires.ftc.ftccommon.external.SoundPlayingRobotMonitor;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+import org.firstinspires.ftc.teamcode.R;
 import org.firstinspires.ftc.teamcode.utils.hmap;
 import org.opencv.core.Rect;
 import org.opencv.core.Size;
@@ -110,16 +116,21 @@ int[][] dataCenter;
 
     double Kf = 0.007;
 
+    boolean played=false;
     boolean aligned = false;
 
     String csvData = "leftTargetPos,leftCurrentPos,rightTargetPos,rightCurrentPos,P,I,D,F,G\r\n";
 
     double pow = 0;
+    public SoundPool mySound;
+    int streamID;
+    int streamIDy;
 int impossible;
+int lucio;
     @Override
     public void init() {
         impossible = hardwareMap.appContext.getResources().getIdentifier("mission_nightwing", "raw", hardwareMap.appContext.getPackageName());
-
+        lucio = hardwareMap.appContext.getResources().getIdentifier("lucio", "raw", hardwareMap.appContext.getPackageName());
         telemetry.addData("reading left...","");
         String readfile = "left.csv";
         File fileR = AppUtil.getInstance().getSettingsFile(readfile);
@@ -184,6 +195,11 @@ int impossible;
         detector.ratioScorer.perfectRatio = 1.0;
 
         detector.enable(); // Start detector
+        mySound= new SoundPool(1,AudioManager.STREAM_MUSIC,0);
+        impossible = mySound.load(hardwareMap.appContext, R.raw.mission_nightwing,1);
+        lucio = mySound.load(hardwareMap.appContext, R.raw.lucio,1);
+
+
     }
 
     /*
@@ -191,6 +207,10 @@ int impossible;
      */
     @Override
     public void init_loop() {
+        if(runtime.seconds()>5 && !played){
+            streamID= mySound.play(lucio,1,1,1,0,1);
+            played=true;
+        }
         Rect bestRect = detector.getFoundRect();
         double xPos = bestRect.x + (bestRect.width / 2);
         telemetry.addData("pos:",order.toString());
@@ -203,6 +223,7 @@ int impossible;
                 order= SamplingOrderDetector.GoldLocation.RIGHT;
             }
         }
+        telemetry.addData("runtime since init: ", runtime.seconds());
         telemetry.update();
         //telemetry.addData("Current Order" , detector.getCurrentOrder().toString()); // The current result for the frame
     }
@@ -212,7 +233,9 @@ int impossible;
      */
     @Override
     public void start() {
-        SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, impossible);
+
+        streamID= mySound.play(impossible,1,1,1,-1,1);
+        //SoundPlayer.getInstance().play(hardwareMap.appContext,impossible,1,0,1);
         //order = detector.getLastOrder();
         //if(order== )
         if(order==SamplingOrderDetector.GoldLocation.LEFT){
@@ -409,8 +432,8 @@ telemetry.addData("runtime",runtime);
      */
     @Override
     public void stop() {
-
-
+mySound.stop(streamIDy);
+        mySound.stop(streamID);
         detector.disable();
 //        String filename = "test.csv";
 //        File file = AppUtil.getInstance().getSettingsFile(filename);

@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.comp_code;
 import android.media.AudioManager;
 import android.media.SoundPool;
 
+import com.qualcomm.ftccommon.SoundPlayer;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -18,6 +19,7 @@ public class TeleOp extends OpMode {
     private double nitro1;
     private double nitro2;
 
+    boolean yeaboi = false;
     boolean cos = false;
     boolean press = false;
 
@@ -31,14 +33,20 @@ public class TeleOp extends OpMode {
     public SoundPool mySound;
     public int beepID;
     int streamID;
+    int streamIDy;
     boolean play = false;
 
+int yeahboi;
     @Override
     public void init() {
         hwmap.init(hardwareMap);
 
         mySound= new SoundPool(1,AudioManager.STREAM_MUSIC,0);
         beepID = mySound.load(hardwareMap.appContext, R.raw.mario,1);
+        yeahboi = mySound.load(hardwareMap.appContext, R.raw.yeah_boi,1);
+
+        telemetry.update();
+
 
     }
 
@@ -101,6 +109,16 @@ public class TeleOp extends OpMode {
         if (gamepad2.a) {
             isLocked = false;
         }
+        if(cos){
+            hwmap.leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+            hwmap.rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        }
+        else{
+            if(cos){
+                hwmap.leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                hwmap.rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            }
+        }
         if (isLocked) {
             if (gamepad2.left_stick_y < 0) {
                 hwmap.arm(-(.5 * gamepad2.left_stick_y * nitro2 * (1 - (gamepad2.left_trigger * .8))));
@@ -110,19 +128,18 @@ public class TeleOp extends OpMode {
             }
         }
         else if (!armPIDActive) {
-            if (Math.abs(gamepad2.left_stick_y) > .02 || !cos) {
+
                 hwmap.arm(-(.5 * gamepad2.left_stick_y * nitro2 * (1 - (gamepad2.left_trigger * .8))));
                 //hwmap.leftArm.setPower(.5 * gamepad2.left_stick_y * nitro2 * (1 - (gamepad2.left_trigger * .8)));
-            } else {
-                theta = (((double) hwmap.leftArm.getCurrentPosition())-1600) / (-6800.0);
-                theta = theta * 3.14159;
-
-                telemetry.addData("theta", theta);
-                telemetry.addData("cos:", Math.cos(theta));
+//                theta = (((double) hwmap.leftArm.getCurrentPosition())-1600) / (-6800.0);
+//                theta = theta * 3.14159;
+//
+//                telemetry.addData("theta", theta);
+//                telemetry.addData("cos:", Math.cos(theta));
                // hwmap.leftArm.setPower(Math.cos(theta) * (.05+ .03*(hwmap.armExtendLeft.getCurrentPosition()/1024)));
                 //hwmap.rightArm.setPower(Math.cos(theta) * (.05+ .03*(hwmap.armExtendLeft.getCurrentPosition()/1024)));
 
-            }
+
 
         }
 
@@ -130,7 +147,7 @@ public class TeleOp extends OpMode {
             hwmap.lock(isLocked);
 
         //reset encoders
-if(gamepad2.start){
+if(gamepad2.start && gamepad2.x){
             hwmap.reset();
 }
 
@@ -153,29 +170,40 @@ else{
 
         //setpoints
         if (gamepad2.dpad_up) {
-            armSetPoint = -2600;
-            if (hwmap.leftArm.getCurrentPosition() < armSetPoint + 500 && hwmap.leftArm.getCurrentPosition() > armSetPoint - 500) {
-                armExtendSetPoint = 1024;
+            armSetPoint = 1700;
+            if (hwmap.leftArm.getCurrentPosition() < armSetPoint + 800 && hwmap.leftArm.getCurrentPosition() > armSetPoint - 800) {
+                armExtendSetPoint = 950;
             } else {
                 armExtendSetPoint = 33;
             }
             armPIDActive = true;
         } else if (gamepad2.dpad_down) {
-            armSetPoint = -6286;
-            if (hwmap.leftArm.getCurrentPosition() < armSetPoint + 500 && hwmap.leftArm.getCurrentPosition() > armSetPoint - 500) {
-                armExtendSetPoint = 625;
+            armSetPoint = 5066;
+            if (hwmap.leftArm.getCurrentPosition() < armSetPoint + 800 && hwmap.leftArm.getCurrentPosition() > armSetPoint - 800) {
+                armExtendSetPoint = 450;
             } else {
-                armExtendSetPoint = 33;
+                armExtendSetPoint = 250;
             }
 
             armPIDActive = true;
         } else if (gamepad2.dpad_right) {
-            armSetPoint = -232;
-            armExtendSetPoint = 33;
+            armSetPoint = 0;
+            armExtendSetPoint = 250;
             armPIDActive = true;
         } else {
             armPIDActive = false;
         }
+        if((gamepad1.dpad_left || gamepad2.dpad_left) && !yeaboi){
+            streamIDy= mySound.play(yeahboi,1,1,1,-1,1);
+        }
+        if(gamepad2.dpad_left || gamepad1.dpad_left){
+            yeaboi=true;
+        }
+        else{
+            yeaboi=false;
+            mySound.stop(streamIDy);
+        }
+
 
 
         if (armPIDActive) {
@@ -183,12 +211,17 @@ else{
             double armKp = 0.002;
             double armExtendKp = 0.002;
 
-            int armError = (hwmap.leftArm.getCurrentPosition()-1300) - armSetPoint;
+            int armError = (hwmap.leftArm.getCurrentPosition()) - armSetPoint;
             int armExtendError = hwmap.armExtendLeft.getCurrentPosition() - armExtendSetPoint;
 
             double armPower = (double) armError * armKp;
             double armExtendPower = (double) armExtendError * armExtendKp;
-
+if(armExtendPower>.6){
+    armExtendPower=.6;
+}
+if(armExtendPower<-.6){
+    armExtendPower=-.6;
+     }
             hwmap.leftArm.setPower(armPower);
             hwmap.rightArm.setPower(armPower);
             hwmap.armExtendLeft.setPower(armExtendPower);
@@ -198,5 +231,9 @@ else{
             telemetry.addData("Arm extend error", armExtendError);
         }
 
+    }
+    public void stop(){
+        mySound.stop(streamIDy);
+        mySound.stop(streamID);
     }
 }
