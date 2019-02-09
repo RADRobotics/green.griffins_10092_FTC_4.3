@@ -109,16 +109,14 @@ int yeahboi;
         if (gamepad2.a) {
             isLocked = false;
         }
-        if(cos){
-            hwmap.leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-            hwmap.rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        }
-        else{
-            if(cos){
-                hwmap.leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-                hwmap.rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            }
-        }
+//        if(cos){
+//            hwmap.leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+//            hwmap.rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+//        }
+//        else{
+//                hwmap.leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//                hwmap.rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        }
         if (isLocked) {
             if (gamepad2.left_stick_y < 0) {
                 hwmap.arm(-(.5 * gamepad2.left_stick_y * nitro2 * (1 - (gamepad2.left_trigger * .8))));
@@ -170,14 +168,18 @@ else{
 
         //setpoints
         if (gamepad2.dpad_up) {
+            hwmap.leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            hwmap.rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             armSetPoint = 1700;
             if (hwmap.leftArm.getCurrentPosition() < armSetPoint + 800 && hwmap.leftArm.getCurrentPosition() > armSetPoint - 800) {
                 armExtendSetPoint = 950;
             } else {
-                armExtendSetPoint = 33;
+                armExtendSetPoint = 250;
             }
             armPIDActive = true;
         } else if (gamepad2.dpad_down) {
+            hwmap.leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            hwmap.rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             armSetPoint = 5066;
             if (hwmap.leftArm.getCurrentPosition() < armSetPoint + 800 && hwmap.leftArm.getCurrentPosition() > armSetPoint - 800) {
                 armExtendSetPoint = 450;
@@ -187,8 +189,10 @@ else{
 
             armPIDActive = true;
         } else if (gamepad2.dpad_right) {
-            armSetPoint = 0;
-            armExtendSetPoint = 250;
+            hwmap.leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+            hwmap.rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+            armSetPoint = 2000;
+            armExtendSetPoint = 33;
             armPIDActive = true;
         } else {
             armPIDActive = false;
@@ -208,18 +212,18 @@ else{
 
         if (armPIDActive) {
             //-6652
-            double armKp = 0.002;
-            double armExtendKp = 0.002;
+            double armKp = 0.002*nitro2;
+            double armExtendKp = 0.002 * nitro2;
 
             int armError = (hwmap.leftArm.getCurrentPosition()) - armSetPoint;
             int armExtendError = hwmap.armExtendLeft.getCurrentPosition() - armExtendSetPoint;
 
             double armPower = (double) armError * armKp;
             double armExtendPower = (double) armExtendError * armExtendKp;
-if(armExtendPower>.6){
+if(armExtendPower>.6 &&!gamepad2.dpad_right){
     armExtendPower=.6;
 }
-if(armExtendPower<-.6){
+if(armExtendPower<-.6&&!gamepad2.dpad_right){
     armExtendPower=-.6;
      }
             hwmap.leftArm.setPower(armPower);
