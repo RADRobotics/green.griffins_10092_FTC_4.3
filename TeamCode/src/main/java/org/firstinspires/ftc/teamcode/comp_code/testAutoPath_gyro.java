@@ -2,8 +2,6 @@ package org.firstinspires.ftc.teamcode.comp_code;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.ReadWriteFile;
 
@@ -11,14 +9,13 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.teamcode.utils.hmap;
 
 import java.io.File;
-import java.util.ArrayList;
 
 import static java.lang.Integer.parseInt;
 
 //dab
-@Autonomous(name = "testAutoPathF", group = "Prototyping")
+@Autonomous(name = "testAutoPath_coordinates", group = "Prototyping")
 
-public class testAutoPath extends LinearOpMode {
+public class testAutoPath_gyro extends LinearOpMode {
     hmap hwmap = new hmap();
 
 //    private GoldDetector detector;
@@ -71,20 +68,32 @@ public class testAutoPath extends LinearOpMode {
     int previousErrorR;
     int previousErrorL;
 
+    int previousLeftPos;
+    int previousRightPos;
+
+    double sumX =0;
+    double sumY = 0;
+    double sumAngle = 0;
+
+    double sumTargetX = 0;
+    double sumTargetY = 0;
+    double sumTargetAngle = 0;
+
     //double Kp = .002;
     //double Ki = 0.0001;
     //double Kd = 0.001;
 
-    double Kp = 0.001;
-    double Ki = 0.00006;
-    double Kd = 0;
-    double Kg = 0.05;
+    double Kp = 0.0015;
+    double Ki = 0.00015;
+    double Kd = 0.001;
+    //double Kg = 0.001;
+    double Kg = 0;
 
-    double Kf = 0.009;
+    double Kf = 0.007;
 
     boolean aligned = false;
 
-    String csvData = "leftTargetPos,leftCurrentPos,rightTargetPos,rightCurrentPos,D,F,G\r\n";
+    String csvData = "leftTargetPos,leftCurrentPos,rightTargetPos,rightCurrentPos,adjXerror,adjYerror,angError,feedL,feedR,Gyro\r\n";
 
     public void runOpMode() throws InterruptedException {
 
@@ -99,7 +108,6 @@ public class testAutoPath extends LinearOpMode {
             for(int p=0;p<split2.length;p++){
                 dataLeft[i][p]=parseInt(split2[p]);
             }
-
         }
 
         telemetry.addData("reading center...","");
@@ -133,13 +141,17 @@ public class testAutoPath extends LinearOpMode {
         //for loop to create data array from string to do
 
         hwmap.init(hardwareMap);
-//hwmap.initGyro();
+        hwmap.initGyro();
+        hwmap.reset();
 
 
         step = -2;
 
         waitForStart();
-hwmap.reset();
+
+
+
+        hwmap.reset();
 
         while (opModeIsActive()) {
             telemetry.update();
@@ -178,11 +190,21 @@ if(step==-2){
                     extend = data[pos][4];
                     intake= data[pos][5];
                     intake2= data[pos][6];
-                    if(pos<data.length) {
+
+                    calcNextTargetPos(speedL,speedR, 1);
+
+                    if((pos+2)<data.length) {
                         pos++;
                     }
+
                     runtime.reset();
                 }
+
+                calcNextPos(hwmap.lw1.getCurrentPosition()-previousLeftPos,hwmap.rw1.getCurrentPosition()-previousRightPos,1);
+
+                previousLeftPos = hwmap.lw1.getCurrentPosition();
+                previousRightPos = hwmap.rw1.getCurrentPosition();
+
                 errorR= setR-hwmap.rw1.getCurrentPosition();
                 errorL = setL-hwmap.lw1.getCurrentPosition();
                 double pr;
@@ -192,23 +214,57 @@ if(step==-2){
                 double dErrorR = errorR - previousErrorR;
                 double dErrorL = errorL - previousErrorL;
 
-                double gyroError =0;//gyro-hwmap.gyro.getHeading();
+                double gyroError = gyro-hwmap.gyro.getHeading();
 
-                pr = errorR*Kp + Kd*dErrorR + Ki*sumErrorR + Kf*speedR - gyroError*Kg;
-                pl = errorL*Kp + Kd*dErrorL + Ki*sumErrorL + Kf*speedL + gyroError*Kg;
+                //pr = errorR*Kp + Kd*dErrorR + Ki*sumErrorR + Kf*speedR + gyroError*Kg;
+                //pl = errorL*Kp + Kd*dErrorL + Ki*sumErrorL + Kf*speedL - gyroError*Kg;
 
+                double adjustedXError = Math.cos(sumTargetAngle)*(sumX - sumTargetX) - Math.sin(sumTargetAngle)*(sumY - sumTargetY);
+                double adjustedYError = Math.sin(sumTargetAngle)*(sumX - sumTargetX) + Math.cos(sumTargetAngle)*(sumY - sumTargetY);
+
+                double angleError = sumAngle - sumTargetAngle;
+
+                //double forwardPower = -adjustedYError*0.05;
+                //double anglePower = -adjustedXError*0.08 - angleError*0.8;
+
+                if(adjustedYError > 0){
+                    adjustedXError = -adjustedXError;
+                }
+
+                if(Math.abs(adjustedYError)<1){
+                    adjustedXError = (adjustedXError)*(Math.abs(adjustedYError));
+                }
+
+                double forwardPower = -adjustedYError*0.1;
+                double anglePower = -adjustedXError*0.1 - angleError*2;//1.5
+
+
+                if(gamepad1.y){
+                    pr = forwardPower + anglePower + speedR*Kf;
+                    pl = forwardPower - anglePower + speedL * Kf;
+                }else {
+                    pr = 0;
+                    pl = 0;
+                }
                 hwmap.rw1.setPower(pr);
                 hwmap.rw2.setPower(pr);
                 hwmap.lw1.setPower(pl);
                 hwmap.lw2.setPower(pl);
 
-                telemetry.addData("pr",pr);
-                telemetry.addData("pl",pl);
-                telemetry.addData("errorL:", errorL);
-                telemetry.addData("errorR",errorR);
+                //telemetry.addData("pr",pr);
+                //telemetry.addData("pl",pl);
+                //telemetry.addData("errorL:", errorL);
+                //telemetry.addData("errorR",errorR);
+                telemetry.addData("adjustedXError", adjustedXError);
+                telemetry.addData("adjustedYError", adjustedYError);
+                telemetry.addData("sumTargetX:", sumTargetX);
+                telemetry.addData("sumTargetY",sumTargetY);
+                telemetry.addData("sumTargetAngle",sumTargetAngle);
+                telemetry.addData("sumX:", sumX);
+                telemetry.addData("sumY",sumY);
+                telemetry.addData("sumAngle",sumAngle);
 
-
-                csvData += setL + ","+hwmap.lw1.getCurrentPosition()+ "," + setR + ","+ hwmap.lw1.getCurrentPosition() +"," + Kd*dErrorL + "," + Kf*speedL + "," + gyroError*Kg +"\r\n";
+                csvData += setL + ","+hwmap.lw1.getCurrentPosition()+ "," + setR + ","+ hwmap.rw1.getCurrentPosition() +","+ adjustedXError +","+ adjustedYError +"," + angleError + "," + Kf*speedL + ","+Kf*speedR+ "," + gyroError*Kg +"\r\n";
 
                 sumErrorL += errorL;
                 sumErrorR += errorR;
@@ -584,5 +640,87 @@ if(step==-2){
         ReadWriteFile.writeFile(file, csvData);
         telemetry.log().add("saved to '%s'", filename);
 
+    }
+
+    public void calcNextTargetPos(double leftSpeed, double rightSpeed, double timeStep){
+        timeStep = 1;
+        double driveBaseWidth = 14.4/2.0;
+
+        double encoderTicksPerMotorRev = 28;
+        double gearRatio = (1.0/9.0);
+        double wheelDiameter = 2;
+
+        double encoderTicksPerInch = (wheelDiameter * 3.1415)*encoderTicksPerMotorRev * (1.0/gearRatio);
+
+        leftSpeed = ((double)leftSpeed/encoderTicksPerInch)*40.0;
+        rightSpeed = ((double)rightSpeed/encoderTicksPerInch)*40.0;
+
+        double centerSpeed = (leftSpeed + rightSpeed)/2.0;
+        double centerDistance = centerSpeed * timeStep;
+
+        double angleAdjust = 4;
+
+        double changeX,changeY,changeA = 0;
+
+        if(leftSpeed == rightSpeed){
+            changeX = 0;
+            changeY = centerDistance;
+            changeA = 0;
+        }else if(leftSpeed == -rightSpeed){
+            changeX = 0;
+            changeY  = 0;
+            changeA = (-(leftSpeed*timeStep)/(driveBaseWidth))*angleAdjust;
+        }else{
+            double radius = (driveBaseWidth/((rightSpeed/leftSpeed)-1))+driveBaseWidth/2;//((rightSpeed + leftSpeed)/(rightSpeed - leftSpeed))*driveBaseWidth;
+            changeX = (-radius * Math.cos(centerDistance/radius))+radius;
+            changeY = radius * Math.sin(centerDistance/radius);
+            changeA = (centerDistance/(radius));
+        }
+
+        sumTargetX += Math.cos(sumTargetAngle)*changeX + Math.sin(sumTargetAngle)*changeY;
+        sumTargetY += Math.sin(sumTargetAngle)*changeX + Math.cos(sumTargetAngle)*changeY;
+
+        sumTargetAngle += changeA;
+    }
+
+    public void calcNextPos(double leftSpeed, double rightSpeed, double timeStep){
+        timeStep = 1;
+        double driveBaseWidth = 14.4/2.0;
+
+        double encoderTicksPerMotorRev = 28;
+        double gearRatio = (1.0/9.0);
+        double wheelDiameter = 2;
+
+        double encoderTicksPerInch = (wheelDiameter * 3.1415)*encoderTicksPerMotorRev * (1.0/gearRatio);
+
+        leftSpeed = ((double)leftSpeed/encoderTicksPerInch)*40.0;
+        rightSpeed = ((double)rightSpeed/encoderTicksPerInch)*40.0;
+
+        double centerSpeed = (leftSpeed + rightSpeed)/2.0;
+        double centerDistance = centerSpeed * timeStep;
+
+        double angleAdjust = 4;
+
+        double changeX,changeY,changeA = 0;
+
+        if(leftSpeed == rightSpeed){
+            changeX = 0;
+            changeY = centerDistance;
+            changeA = 0;
+        }else if(leftSpeed == -rightSpeed){
+            changeX = 0;
+            changeY  = 0;
+            changeA = (-(leftSpeed*timeStep)/(driveBaseWidth))*angleAdjust;
+        }else{
+            double radius = (driveBaseWidth/((rightSpeed/leftSpeed)-1))+driveBaseWidth/2;//((rightSpeed + leftSpeed)/(rightSpeed - leftSpeed))*driveBaseWidth;
+            changeX = (-radius * Math.cos(centerDistance/radius))+radius;
+            changeY = radius * Math.sin(centerDistance/radius);
+            changeA = (centerDistance/(radius));
+        }
+
+        sumX += Math.cos(sumAngle)*changeX + Math.sin(sumAngle)*changeY;
+        sumY += Math.sin(sumAngle)*changeX + Math.cos(sumAngle)*changeY;
+
+        sumAngle += changeA;
     }
 }

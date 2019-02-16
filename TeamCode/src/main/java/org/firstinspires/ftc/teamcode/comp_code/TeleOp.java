@@ -77,6 +77,7 @@ int yeahboi;
             nitro2 = .2;
         }
 
+
         //drive motors
         if(!(gamepad1.right_trigger>.05 || gamepad1.left_trigger>.05)) {
             hwmap.rs((-gamepad1.left_stick_y - gamepad1.right_stick_x) * nitro1);
@@ -126,9 +127,13 @@ int yeahboi;
         //ratchet stuff/arm
         if (gamepad2.x) {
             isLocked = true;
+            armPIDActive=true;
+            armSetPoint=-100;
+            armExtendSetPoint=700;
         }
         if (gamepad2.a) {
             isLocked = false;
+            armPIDActive=false;
         }
 //        if(cos){
 //            hwmap.leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -270,3 +275,6 @@ if(armExtendPower<-.6&&!gamepad2.dpad_right){
         mySound.stop(streamID);
     }
 }
+
+
+//add lidar thing
