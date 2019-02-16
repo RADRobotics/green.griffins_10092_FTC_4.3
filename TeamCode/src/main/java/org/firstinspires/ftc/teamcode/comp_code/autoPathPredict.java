@@ -207,7 +207,7 @@ int lucio;
      */
     @Override
     public void init_loop() {
-        if(runtime.seconds()>5 && !played){
+        if(runtime.seconds()>40 && !played){
             streamID= mySound.play(lucio,1,1,1,0,1);
             played=true;
         }

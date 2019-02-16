@@ -65,13 +65,34 @@ int yeahboi;
             play = false;
             mySound.stop(streamID);
         }
-        nitro1 = .6 + (gamepad1.right_trigger * .4) - (gamepad1.left_trigger*.5);
-        nitro2 = 1 + ((gamepad2.right_trigger));
+//        nitro1 = .6 + (gamepad1.right_trigger * .4) - (gamepad1.left_trigger*.5);
+//        nitro2 = 1 + ((gamepad2.right_trigger));
 
+        nitro1=0.6;
+        if(gamepad1.right_bumper){
+           nitro1 = 1;
+        }
+
+        if (gamepad1.left_bumper){
+            nitro2 = .2;
+        }
 
         //drive motors
-           hwmap.rs((-gamepad1.left_stick_y - gamepad1.right_stick_x) * nitro1);
+        if(!(gamepad1.right_trigger>.05 || gamepad1.left_trigger>.05)) {
+            hwmap.rs((-gamepad1.left_stick_y - gamepad1.right_stick_x) * nitro1);
             hwmap.ls((-gamepad1.left_stick_y + gamepad1.right_stick_x) * nitro1);
+        }
+        else{
+            if(!gamepad1.b) {
+                hwmap.rs(gamepad1.right_trigger * nitro1);
+                hwmap.ls(-gamepad1.left_trigger * nitro1);
+            }
+            else{
+                hwmap.rs(-gamepad1.right_trigger * nitro1);
+                hwmap.ls(gamepad1.left_trigger * nitro1);
+            }
+
+        }
 
         //arm extension motors
         if (!armPIDActive) {
@@ -191,23 +212,31 @@ else{
         } else if (gamepad2.dpad_right) {
             hwmap.leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
             hwmap.rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-            armSetPoint = 2000;
+            armSetPoint = 3000;
             armExtendSetPoint = 33;
+            armPIDActive = true;
+        } else if((gamepad2.dpad_left)) {
+            hwmap.leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            hwmap.rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            armSetPoint = -100;
+
+                armExtendSetPoint = 250;
+
+
             armPIDActive = true;
         } else {
             armPIDActive = false;
         }
-        if((gamepad1.dpad_left || gamepad2.dpad_left) && !yeaboi){
+        if((gamepad1.dpad_left) && !yeaboi){
             streamIDy= mySound.play(yeahboi,1,1,1,-1,1);
         }
-        if(gamepad2.dpad_left || gamepad1.dpad_left){
+        if(gamepad1.dpad_left){
             yeaboi=true;
         }
         else{
             yeaboi=false;
             mySound.stop(streamIDy);
         }
-
 
 
         if (armPIDActive) {
