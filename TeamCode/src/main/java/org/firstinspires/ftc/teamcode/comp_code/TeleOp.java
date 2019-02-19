@@ -6,8 +6,10 @@ import android.media.SoundPool;
 import com.qualcomm.ftccommon.SoundPlayer;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.R;
 import org.firstinspires.ftc.teamcode.utils.hmap;
 
@@ -27,8 +29,10 @@ public class TeleOp extends OpMode {
 
     private int armSetPoint = 0;
     private int armExtendSetPoint = 0;
+    private double power = 0;
     private boolean armPIDActive = false;
     double theta;
+
 
     public SoundPool mySound;
     public int beepID;
@@ -52,6 +56,8 @@ int yeahboi;
 
     @Override
     public void loop() {
+
+        telemetry.addData("range", String.format("%.01f mm", hwmap.sensorRange.getDistance(DistanceUnit.MM)));
 
         //mario sounds nitro!!!
         if((gamepad1.right_trigger>.1 || gamepad2.right_trigger>.1) && play==false){
@@ -268,6 +274,13 @@ if(armExtendPower<-.6&&!gamepad2.dpad_right){
             telemetry.addData("Arm error", armError);
             telemetry.addData("Arm extend error", armExtendError);
         }
+
+//        if(gamepad1.a){
+//            power = (0.01*hwmap.sensorRange.getDistance(DistanceUnit.MM)- 500);
+//            telemetry.addData("Power: ",power);
+//    }
+
+        telemetry.update();
 
     }
     public void stop(){
