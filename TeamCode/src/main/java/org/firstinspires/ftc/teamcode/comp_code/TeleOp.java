@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.R;
 import org.firstinspires.ftc.teamcode.utils.hmap;
 
@@ -53,12 +54,14 @@ int yeahboi;
     @Override
     public void loop() {
 
+        telemetry.addData("range", String.format("%.01f mm", hwmap.sensorRange.getDistance(DistanceUnit.MM)));
+
         //mario sounds nitro!!!
-        if((gamepad1.right_trigger>.1 || gamepad2.right_trigger>.1) && play==false){
+        if((gamepad1.right_bumper || gamepad2.right_trigger>.1) && play==false){
            streamID= mySound.play(beepID,1,1,1,-1,1);
             play = true;
         }
-        else if(gamepad1.right_trigger>.1 || gamepad2.right_trigger>.1){
+        else if(gamepad1.right_bumper || gamepad2.right_trigger>.1){
 
         }
         else{
@@ -66,7 +69,7 @@ int yeahboi;
             mySound.stop(streamID);
         }
 //        nitro1 = .6 + (gamepad1.right_trigger * .4) - (gamepad1.left_trigger*.5);
-//        nitro2 = 1 + ((gamepad2.right_trigger));
+        nitro2 = 1 + ((gamepad2.right_trigger));
 
         nitro1=0.6;
         if(gamepad1.right_bumper){
@@ -74,7 +77,7 @@ int yeahboi;
         }
 
         if (gamepad1.left_bumper){
-            nitro2 = .2;
+            nitro1 = .2;
         }
 
 
@@ -86,11 +89,11 @@ int yeahboi;
         else{
             if(!gamepad1.b) {
                 hwmap.rs(gamepad1.right_trigger * nitro1);
-                hwmap.ls(-gamepad1.left_trigger * nitro1);
+                hwmap.ls(gamepad1.left_trigger * nitro1);
             }
             else{
                 hwmap.rs(-gamepad1.right_trigger * nitro1);
-                hwmap.ls(gamepad1.left_trigger * nitro1);
+                hwmap.ls(-gamepad1.left_trigger * nitro1);
             }
 
         }
@@ -125,16 +128,7 @@ int yeahboi;
         }
 
         //ratchet stuff/arm
-        if (gamepad2.x) {
-            isLocked = true;
-            armPIDActive=true;
-            armSetPoint=-100;
-            armExtendSetPoint=700;
-        }
-        if (gamepad2.a) {
-            isLocked = false;
-            armPIDActive=false;
-        }
+
 //        if(cos){
 //            hwmap.leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 //            hwmap.rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -223,7 +217,7 @@ else{
         } else if((gamepad2.dpad_left)) {
             hwmap.leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             hwmap.rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            armSetPoint = -100;
+            armSetPoint = -300;
 
                 armExtendSetPoint = 250;
 
@@ -242,11 +236,24 @@ else{
             yeaboi=false;
             mySound.stop(streamIDy);
         }
-
+        if (gamepad2.x) {
+            isLocked = true;
+            armPIDActive=true;
+            armSetPoint=-100;
+            armExtendSetPoint=700;
+        }
+        if (gamepad2.a) {
+            isLocked = false;
+           // armPIDActive=false;
+        }
 
         if (armPIDActive) {
             //-6652
+
             double armKp = 0.002*nitro2;
+            if(gamepad1.x){
+                armKp = .005*nitro2;
+            }
             double armExtendKp = 0.002 * nitro2;
 
             int armError = (hwmap.leftArm.getCurrentPosition()) - armSetPoint;
