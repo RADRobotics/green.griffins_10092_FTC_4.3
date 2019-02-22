@@ -31,6 +31,7 @@ package org.firstinspires.ftc.teamcode.utils;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -54,6 +55,8 @@ public class hmap
     public Servo leftLock = null;
     public Servo intake = null;
     public Servo intake2 = null;
+
+    public static DistanceSensor sensorRange;
 
     /* local OpMode members. */
     private HardwareMap hwMap           =  null;
@@ -142,6 +145,8 @@ public class hmap
         leftLock = hwMap.servo.get("leftLock");
         intake = hwMap.servo.get("intake");
         intake2 = hwMap.servo.get("intake2");
+
+        sensorRange = hwMap.get(DistanceSensor.class, "sensorRange");
 
         rw1.setDirection(DcMotorSimple.Direction.REVERSE);
         rw2.setDirection(DcMotorSimple.Direction.REVERSE);

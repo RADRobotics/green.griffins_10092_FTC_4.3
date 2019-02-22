@@ -31,6 +31,9 @@ public class TeleOp extends OpMode {
     private boolean armPIDActive = false;
     double theta;
 
+    double rightDistance = 0;
+    double distanceAdjustPower = 0;
+
     public SoundPool mySound;
     public int beepID;
     int streamID;
@@ -46,6 +49,7 @@ int yeahboi;
         beepID = mySound.load(hardwareMap.appContext, R.raw.mario,1);
         yeahboi = mySound.load(hardwareMap.appContext, R.raw.yeah_boi,1);
 
+
         telemetry.update();
 
 
@@ -53,6 +57,15 @@ int yeahboi;
 
     @Override
     public void loop() {
+
+        rightDistance = hmap.sensorRange.getDistance(DistanceUnit.MM);
+
+        if(gamepad1.a){
+            distanceAdjustPower = 0.001 * (rightDistance - 500);
+            hwmap.rs(distanceAdjustPower);
+            hwmap.ls(distanceAdjustPower);
+            telemetry.addData("distanceSuggestPower: ", distanceAdjustPower);
+        }
 
         telemetry.addData("range", String.format("%.01f mm", hwmap.sensorRange.getDistance(DistanceUnit.MM)));
 
@@ -82,11 +95,11 @@ int yeahboi;
 
 
         //drive motors
-        if(!(gamepad1.right_trigger>.05 || gamepad1.left_trigger>.05)) {
+        if(!(gamepad1.right_trigger>.05 || gamepad1.left_trigger>.05) && !gamepad1.a) {
             hwmap.rs((-gamepad1.left_stick_y - gamepad1.right_stick_x) * nitro1);
             hwmap.ls((-gamepad1.left_stick_y + gamepad1.right_stick_x) * nitro1);
         }
-        else{
+        else if (!gamepad1.a){
             if(!gamepad1.b) {
                 hwmap.rs(gamepad1.right_trigger * nitro1);
                 hwmap.ls(gamepad1.left_trigger * nitro1);
@@ -275,6 +288,8 @@ if(armExtendPower<-.6&&!gamepad2.dpad_right){
             telemetry.addData("Arm error", armError);
             telemetry.addData("Arm extend error", armExtendError);
         }
+
+
 
     }
     public void stop(){

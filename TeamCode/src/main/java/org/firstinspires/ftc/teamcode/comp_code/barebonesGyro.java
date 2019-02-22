@@ -17,7 +17,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
-@Autonomous(name="Drive Avoid Imu", group="Exercises")
+@Autonomous(name="barebones gyro", group="Exercises")
 //@Disabled
 public class barebonesGyro extends LinearOpMode
 {

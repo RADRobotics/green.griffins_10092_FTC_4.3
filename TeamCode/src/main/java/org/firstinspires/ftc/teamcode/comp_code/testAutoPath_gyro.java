@@ -1,10 +1,15 @@
 package org.firstinspires.ftc.teamcode.comp_code;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.ReadWriteFile;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.teamcode.utils.hmap;
 
@@ -13,10 +18,13 @@ import java.io.File;
 import static java.lang.Integer.parseInt;
 
 //dab
-@Autonomous(name = "testAutoPath_coordinates", group = "Prototyping")
+@Autonomous(name = "testAutoPath_gyro", group = "Prototyping")
 
 public class testAutoPath_gyro extends LinearOpMode {
     hmap hwmap = new hmap();
+    BNO055IMU imu;
+    Orientation lastAngles = new Orientation();
+    double                  globalAngle;
 
 //    private GoldDetector detector;
 //    double alignSize=70;
@@ -26,6 +34,7 @@ public class testAutoPath_gyro extends LinearOpMode {
 //    double scale = (640)/2;//-alignSize
 
     private ElapsedTime runtime = new ElapsedTime();
+    private ElapsedTime runtime2 = new ElapsedTime();
     private final double TICKS_PER_WHEEL_ROTATION = 1120;
 
     int subStep=0;
@@ -89,11 +98,12 @@ public class testAutoPath_gyro extends LinearOpMode {
     //double Kg = 0.001;
     double Kg = 0;
 
-    double Kf = 0.007;
+    double Kf = 0.001;
 
     boolean aligned = false;
 
-    String csvData = "leftTargetPos,leftCurrentPos,rightTargetPos,rightCurrentPos,adjXerror,adjYerror,angError,feedL,feedR,Gyro\r\n";
+    String csvData = "leftTargetPos,leftCurrentPos,rightTargetPos,rightCurrentPos,adjXerror,adjYerror,sumAng,sumTargetAng,feedL,feedR,GyroP,Tgyro,Cgyro\r\n";
+    //csvData += setL + ","+hwmap.lw1.getCurrentPosition()+ "," + setR + ","+ hwmap.rw1.getCurrentPosition() +","+ adjustedXError +","+ adjustedYError +"," + sumAngle+","+sumTargetAngle + "," + Kf*speedL + ","+Kf*speedR+ "," + gyroError*Kg +","+gyro+","+getAngle()+","+runtime2.seconds()+"\r\n";
 
     public void runOpMode() throws InterruptedException {
 
@@ -102,7 +112,7 @@ public class testAutoPath_gyro extends LinearOpMode {
         File fileR = AppUtil.getInstance().getSettingsFile(readfile);
         String sdata = ReadWriteFile.readFile(fileR);
         String[] split1 = sdata.split("@");
-        int[][] dataLeft = new int[split1.length][7];
+        int[][] dataLeft = new int[split1.length][12];
         for (int i=0;i<split1.length-1;i++){
             String[] split2 = split1[i].split(",");
             for(int p=0;p<split2.length;p++){
@@ -114,7 +124,7 @@ public class testAutoPath_gyro extends LinearOpMode {
         File fileR2 = AppUtil.getInstance().getSettingsFile("center.csv");
         String sdata2 = ReadWriteFile.readFile(fileR2);
         String[] split1c = sdata2.split("@");
-        int[][] dataCenter = new int[split1c.length][7];
+        int[][] dataCenter = new int[split1c.length][12];
         for (int i=0;i<split1c.length-1;i++){
             String[] split2 = split1c[i].split(",");
             for(int p=0;p<split2.length;p++){
@@ -127,7 +137,7 @@ public class testAutoPath_gyro extends LinearOpMode {
         File fileRr = AppUtil.getInstance().getSettingsFile("right.csv");
         String sdatar = ReadWriteFile.readFile(fileRr);
         String[] split1r = sdatar.split("@");
-        int[][] dataRight = new int[split1r.length][7];
+        int[][] dataRight = new int[split1r.length][12];
         for (int i=0;i<split1r.length-1;i++){
             String[] split2 = split1r[i].split(",");
             for(int p=0;p<split2.length;p++){
@@ -147,15 +157,48 @@ public class testAutoPath_gyro extends LinearOpMode {
 
         step = -2;
 
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+
+        parameters.mode                = BNO055IMU.SensorMode.IMU;
+        parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.loggingEnabled      = false;
+
+        // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
+        // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
+        // and named "imu".
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+
+        imu.initialize(parameters);
+
+        telemetry.addData("Mode", "calibrating...");
+        telemetry.update();
+
+        // make sure the imu gyro is calibrated before continuing.
+        while (!isStopRequested() && !imu.isGyroCalibrated())
+        {
+            sleep(50);
+            idle();
+        }
+
+        telemetry.addData("Mode", "waiting for start");
+        telemetry.addData("imu calib status", imu.getCalibrationStatus().toString());
+        telemetry.update();
+
         waitForStart();
 
-
+runtime.reset();
+runtime2.reset();
+        resetAngle();
 
         hwmap.reset();
 
         while (opModeIsActive()) {
+            hwmap.lock(false);
             telemetry.update();
-
+            telemetry.addData("1 imu heading", lastAngles.firstAngle);
+            telemetry.addData("2 global heading", getAngle());
+       //     telemetry.update();
 
            // telemetry.addLine()
                //     .addData("step", step);
@@ -214,7 +257,7 @@ if(step==-2){
                 double dErrorR = errorR - previousErrorR;
                 double dErrorL = errorL - previousErrorL;
 
-                double gyroError = gyro-hwmap.gyro.getHeading();
+                double gyroError = gyro-getAngle();
 
                 //pr = errorR*Kp + Kd*dErrorR + Ki*sumErrorR + Kf*speedR + gyroError*Kg;
                 //pl = errorL*Kp + Kd*dErrorL + Ki*sumErrorL + Kf*speedL - gyroError*Kg;
@@ -236,7 +279,7 @@ if(step==-2){
                 }
 
                 double forwardPower = -adjustedYError*0.1;
-                double anglePower = -adjustedXError*0.1 - angleError*2;//1.5
+                double anglePower = -adjustedXError*0.1 - angleError*1.5;//1.5
 
 
                 if(gamepad1.y){
@@ -251,6 +294,49 @@ if(step==-2){
                 hwmap.lw1.setPower(pl);
                 hwmap.lw2.setPower(pl);
 
+
+
+                double armKp = 0.004;
+                double armExtendKp = 0.004;
+
+                int armError = (hwmap.leftArm.getCurrentPosition()) - arm;
+                int armExtendError = hwmap.armExtendLeft.getCurrentPosition() - extend;
+
+                double armPower = (double) armError * armKp;
+                double armExtendPower = (double) armExtendError * armExtendKp;
+
+                hwmap.leftArm.setPower(armPower);
+                hwmap.rightArm.setPower(armPower);
+                hwmap.armExtendLeft.setPower(armExtendPower);
+                hwmap.armExtendRight.setPower(armExtendPower);
+
+                telemetry.addData("Arm error", armError);
+                telemetry.addData("Arm extend error", armExtendError);
+                if(intake==1){
+                    hwmap.intake2.setPosition(0.75);
+                }
+                else if(intake==-1){
+                    hwmap.intake2.setPosition(0.25);
+                }
+                else{
+                    hwmap.intake2.setPosition(0);
+                }
+
+
+                if(intake2==1){
+                    hwmap.intake.setPosition(.75);
+                }
+                else if(intake2==-1){
+                    hwmap.intake.setPosition(0.25);
+                }
+                else{
+                    hwmap.intake.setPosition(0);
+                }
+
+
+
+
+
                 //telemetry.addData("pr",pr);
                 //telemetry.addData("pl",pl);
                 //telemetry.addData("errorL:", errorL);
@@ -263,8 +349,10 @@ if(step==-2){
                 telemetry.addData("sumX:", sumX);
                 telemetry.addData("sumY",sumY);
                 telemetry.addData("sumAngle",sumAngle);
+                telemetry.addData("gyroTarget",gyro);
+                telemetry.addData("currGyro",getAngle());
 
-                csvData += setL + ","+hwmap.lw1.getCurrentPosition()+ "," + setR + ","+ hwmap.rw1.getCurrentPosition() +","+ adjustedXError +","+ adjustedYError +"," + angleError + "," + Kf*speedL + ","+Kf*speedR+ "," + gyroError*Kg +"\r\n";
+                csvData += setL + ","+hwmap.lw1.getCurrentPosition()+ "," + setR + ","+ hwmap.rw1.getCurrentPosition() +","+ adjustedXError +","+ adjustedYError +"," + sumAngle+","+sumTargetAngle + "," + Kf*speedL + ","+Kf*speedR+ "," + gyroError*.005 +","+gyro+","+getAngle()+","+runtime2.seconds()+"\r\n";
 
                 sumErrorL += errorL;
                 sumErrorR += errorR;
@@ -681,6 +769,39 @@ if(step==-2){
         sumTargetY += Math.sin(sumTargetAngle)*changeX + Math.cos(sumTargetAngle)*changeY;
 
         sumTargetAngle += changeA;
+    }
+    private void resetAngle()
+    {
+        lastAngles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+        globalAngle = 0;
+    }
+
+    /**
+     * Get current cumulative angle rotation from last reset.
+     * @return Angle in degrees. + = left, - = right.
+     */
+    private double getAngle()
+    {
+        // We experimentally determined the Z axis is the axis we want to use for heading angle.
+        // We have to process the angle because the imu works in euler angles so the Z axis is
+        // returned as 0 to +180 or 0 to -180 rolling back to -179 or +179 when rotation passes
+        // 180 degrees. We detect this transition and track the total cumulative angle of rotation.
+
+        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+        double deltaAngle = angles.firstAngle - lastAngles.firstAngle;
+
+        if (deltaAngle < -180)
+            deltaAngle += 360;
+        else if (deltaAngle > 180)
+            deltaAngle -= 360;
+
+        globalAngle += deltaAngle;
+
+        lastAngles = angles;
+
+        return globalAngle;
     }
 
     public void calcNextPos(double leftSpeed, double rightSpeed, double timeStep){

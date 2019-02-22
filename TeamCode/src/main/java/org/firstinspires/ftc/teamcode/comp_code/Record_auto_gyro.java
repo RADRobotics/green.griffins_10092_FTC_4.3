@@ -19,7 +19,7 @@ import org.firstinspires.ftc.teamcode.utils.hmap;
 
 import java.io.File;
 
-@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "record_auto_teleop", group = "Competition")
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "record_auto_gyro", group = "Competition")
 
 public class Record_auto_gyro extends LinearOpMode {
     hmap hwmap = new hmap();
@@ -94,6 +94,7 @@ public class Record_auto_gyro extends LinearOpMode {
         // wait for start button.
 
         waitForStart();
+        resetAngle();
 
         while (opModeIsActive()) {
 
@@ -118,16 +119,22 @@ public class Record_auto_gyro extends LinearOpMode {
                     //thing += "s:"+runtime2.seconds() + " r:" + rw.getCurrentPosition() + " l:" + lw.getCurrentPosition() + "; ";
                     if (gamepad2.right_bumper) {
                         intake = 1;
+                        if(gamepad2.b){
+                            intake=-1;
+                        }
                     } else {
                         intake = 0;
                     }
                     if (gamepad2.left_bumper) {
                         intake2 = 1;
+                        if(gamepad2.b){
+                            intake2=-1;
+                        }
                     } else {
                         intake2 = 0;
                     }
                     //6
-                    thing += (hwmap.rw1.getCurrentPosition()) + "," + (hwmap.lw1.getCurrentPosition()) + "," + 0 + "," + hwmap.leftArm.getCurrentPosition() + "," + hwmap.armExtendLeft.getCurrentPosition() + "," + intake + "," + intake2 + "," + getAngle()+"@";//hwmap.gyro.getHeading()*1000
+                    thing += (hwmap.rw1.getCurrentPosition()) + "," + (hwmap.lw1.getCurrentPosition()) + "," + (int)(getAngle()*1000) + "," + hwmap.leftArm.getCurrentPosition() + "," + hwmap.armExtendLeft.getCurrentPosition() + "," + intake + "," + intake2 +"@";//hwmap.gyro.getHeading()*1000
                     telemetry.addData("sent", "");
                     runtime.reset();
                 }
@@ -163,6 +170,11 @@ public class Record_auto_gyro extends LinearOpMode {
             }
             telemetry.addData("recordvar", record);
             //mario sounds nitro!!!
+
+
+
+
+
             if ((gamepad1.right_trigger > .1 || gamepad2.right_trigger > .1) && play == false) {
                 streamID = mySound.play(beepID, 1, 1, 1, -1, 1);
                 play = true;
