@@ -56,7 +56,10 @@ public class hmap
     public Servo intake = null;
     public Servo intake2 = null;
 
-    public static DistanceSensor sensorRange;
+    public Servo led = null;
+
+    public static DistanceSensor sensorRangeRight;
+    public static DistanceSensor sensorRangeLeft;
 
     /* local OpMode members. */
     private HardwareMap hwMap           =  null;
@@ -102,7 +105,7 @@ public class hmap
         }
         else{
             leftLock.setPosition(0.37);
-            rightLock.setPosition(.32);
+            rightLock.setPosition(.31);
         }
     }
     public void reset(){
@@ -130,6 +133,7 @@ public class hmap
 
         // Save reference to Hardware map
         hwMap = ahwMap;
+        led = hwMap.servo.get("led");
 
         rw1 = hwMap.dcMotor.get("rw");
         lw1 = hwMap.dcMotor.get("lw");
@@ -146,7 +150,8 @@ public class hmap
         intake = hwMap.servo.get("intake");
         intake2 = hwMap.servo.get("intake2");
 
-        sensorRange = hwMap.get(DistanceSensor.class, "sensorRange");
+        sensorRangeLeft = hwMap.get(DistanceSensor.class, "sensorRangeLeft");
+        sensorRangeRight = hwMap.get(DistanceSensor.class, "sensorRangeRight");
 
         rw1.setDirection(DcMotorSimple.Direction.REVERSE);
         rw2.setDirection(DcMotorSimple.Direction.REVERSE);
