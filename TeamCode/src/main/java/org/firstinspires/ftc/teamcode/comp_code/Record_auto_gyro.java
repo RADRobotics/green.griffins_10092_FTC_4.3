@@ -6,6 +6,7 @@ import android.media.SoundPool;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.ReadWriteFile;
 
@@ -114,22 +115,21 @@ public class Record_auto_gyro extends LinearOpMode {
                 }
                 telemetry.addData("recording, runtime: ", totalTime.seconds());
                 telemetry.addData("press right_stick_button to stop recording", "");
-                if (runtime.seconds() > .025) {
+                if (runtime.seconds() > .05) {
                     //list.add(runtime2.seconds() + " " + rw.getCurrentPosition() + " " + lw.getCurrentPosition());
                     //thing += "s:"+runtime2.seconds() + " r:" + rw.getCurrentPosition() + " l:" + lw.getCurrentPosition() + "; ";
                     if (gamepad2.right_bumper) {
                         intake = 1;
-                        if(gamepad2.b){
-                            intake=-1;
-                        }
-                    } else {
+
+                    }
+                   else  if(gamepad2.left_bumper){
+                        intake=-1;
+                    }else {
                         intake = 0;
                     }
-                    if (gamepad2.left_bumper) {
+                    if (gamepad2.left_trigger>.1) {
                         intake2 = 1;
-                        if(gamepad2.b){
-                            intake2=-1;
-                        }
+
                     } else {
                         intake2 = 0;
                     }
@@ -184,77 +184,95 @@ public class Record_auto_gyro extends LinearOpMode {
                 play = false;
                 mySound.stop(streamID);
             }
-            nitro1 = .6 + (gamepad1.right_trigger * .4) - (gamepad1.left_trigger * .5);
-            nitro2 = 1 + (gamepad2.right_trigger);
+            nitro2 = 1 + ((gamepad2.right_trigger));
+
+            nitro1=0.6;
+            if(gamepad1.right_bumper){
+                nitro1 = 1;
+            }
+
+
 
 
             //drive motors
-            hwmap.rw1.setPower((gamepad1.left_stick_y + gamepad1.right_stick_x) * nitro1);
-            hwmap.rw2.setPower((gamepad1.left_stick_y + gamepad1.right_stick_x) * nitro1);
-            hwmap.lw1.setPower((gamepad1.left_stick_y - gamepad1.right_stick_x) * nitro1);
-            hwmap.lw2.setPower((gamepad1.left_stick_y - gamepad1.right_stick_x) * nitro1);
+            if(!(gamepad1.right_trigger>.05 || gamepad1.left_trigger>.05) && !gamepad1.left_bumper) {
+                hwmap.rs((-gamepad1.left_stick_y - gamepad1.right_stick_x) * nitro1);
+                hwmap.ls((-gamepad1.left_stick_y + gamepad1.right_stick_x) * nitro1);
+            }
+            else if (!gamepad1.left_bumper){
+                if(!gamepad1.b) {
+                    hwmap.rs(gamepad1.right_trigger * nitro1);
+                    hwmap.ls(gamepad1.left_trigger * nitro1);
+                }
+                else{
+                    hwmap.rs(-gamepad1.right_trigger * nitro1);
+                    hwmap.ls(-gamepad1.left_trigger * nitro1);
+                }
 
-            telemetry.addData("1 imu heading", lastAngles.firstAngle);
-            telemetry.addData("2 global heading", getAngle());
+            }
 
             //arm extension motors
             if (!armPIDActive) {
-                hwmap.armExtendRight.setPower(.5 * (gamepad2.right_stick_y) * nitro2 * (1 - (gamepad2.left_trigger * .8)));
-                hwmap.armExtendLeft.setPower(.5 * (gamepad2.right_stick_y) * nitro2 * (1 - (gamepad2.left_trigger * .8)));
+                hwmap.armExtendRight.setPower(.7 * (gamepad2.right_stick_y) * nitro2 * (1 - (gamepad2.left_trigger * .8)));
+                hwmap.armExtendLeft.setPower(.7 * (gamepad2.right_stick_y) * nitro2 * (1 - (gamepad2.left_trigger * .8)));
             }
 
             //intake
             if (gamepad2.left_bumper) {
-                if (gamepad2.b) {
-                    hwmap.intake.setPosition(0.25);
-                } else {
-                    hwmap.intake.setPosition(.75);
-                }
-                telemetry.addData("test2", gamepad1.left_bumper);
-            } else {
-                hwmap.intake.setPosition(0);
+                hwmap.intake2.setPosition(.75);
+                hwmap.intake.setPosition(0.65+gamepad2.right_trigger*.1);
+                // telemetry.addData("test2", gamepad1.left_bumper);
+            } else if (gamepad2.right_bumper) {
+                hwmap.intake2.setPosition(0.5);
+                hwmap.intake.setPosition(0.75);
+                //telemetry.addData("test", gamepad1.right_bumper);
             }
+            else if(gamepad2.left_trigger>.1){
+                hwmap.intake.setPosition(0.4-gamepad2.left_trigger*.15);
+                hwmap.intake2.setPosition(0.25);
+            }
+            else if(gamepad2.b){
+                hwmap.intake2.setPosition(0.25);
+                hwmap.intake.setPosition(.5);
+            }
+            else {
 
-            if (gamepad2.right_bumper) {
-                if (gamepad2.b) {
-                    hwmap.intake2.setPosition(0.25);
-                } else {
-                    hwmap.intake2.setPosition(0.75);
-                }
-                telemetry.addData("test", gamepad1.right_bumper);
-            } else {
-                hwmap.intake2.setPosition(0);
+                hwmap.intake2.setPosition(.5);
+
+                hwmap.intake.setPosition(.5);
             }
 
             //ratchet stuff/arm
-            if (gamepad2.x) {
-                isLocked = true;
-            }
-            if (gamepad2.a) {
-                isLocked = false;
-            }
+
+//        if(cos){
+//            hwmap.leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+//            hwmap.rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+//        }
+//        else{
+//                hwmap.leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//                hwmap.rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        }
             if (isLocked) {
                 if (gamepad2.left_stick_y < 0) {
-                    hwmap.rightArm.setPower(.5 * gamepad2.left_stick_y * nitro2 * (1 - (gamepad2.left_trigger * .8)));
-                    hwmap.leftArm.setPower(.5 * gamepad2.left_stick_y * nitro2 * (1 - (gamepad2.left_trigger * .8)));
+                    hwmap.arm(-(.5 * gamepad2.left_stick_y * nitro2 * (1 - (gamepad2.left_trigger * .8))));
+                    // hwmap.leftArm.setPower(.5 * gamepad2.left_stick_y * nitro2 * (1 - (gamepad2.left_trigger * .8)));
                 } else {
-                    hwmap.rightArm.setPower(0);
-                    hwmap.leftArm.setPower(0);
+                    hwmap.arm(0);
                 }
-            } else if (!armPIDActive) {
-                if (Math.abs(gamepad2.left_stick_y) > .02 || !cos) {
-                    hwmap.rightArm.setPower(.5 * gamepad2.left_stick_y * nitro2 * (1 - (gamepad2.left_trigger * .8)));
-                    hwmap.leftArm.setPower(.5 * gamepad2.left_stick_y * nitro2 * (1 - (gamepad2.left_trigger * .8)));
-                } else {
-                    theta = (((double) hwmap.leftArm.getCurrentPosition()) - 1600) / (-6800.0);
-                    theta = theta * 3.14159;
+            }
+            else if (!armPIDActive) {
 
-                    telemetry.addData("theta", theta);
-                    telemetry.addData("cos:", Math.cos(theta));
-                    hwmap.leftArm.setPower(Math.cos(theta) * (.05 + .03 * (hwmap.armExtendLeft.getCurrentPosition() / 1024)));
-                    hwmap.rightArm.setPower(Math.cos(theta) * (.05 + .03 * (hwmap.armExtendLeft.getCurrentPosition() / 1024)));
+                hwmap.arm(-(.5 * gamepad2.left_stick_y * nitro2 * (1 - (gamepad2.left_trigger * .8))));
+                //hwmap.leftArm.setPower(.5 * gamepad2.left_stick_y * nitro2 * (1 - (gamepad2.left_trigger * .8)));
+//                theta = (((double) hwmap.leftArm.getCurrentPosition())-1600) / (-6800.0);
+//                theta = theta * 3.14159;
+//
+//                telemetry.addData("theta", theta);
+//                telemetry.addData("cos:", Math.cos(theta));
+                // hwmap.leftArm.setPower(Math.cos(theta) * (.05+ .03*(hwmap.armExtendLeft.getCurrentPosition()/1024)));
+                //hwmap.rightArm.setPower(Math.cos(theta) * (.05+ .03*(hwmap.armExtendLeft.getCurrentPosition()/1024)));
 
-                }
+
 
             }
 
@@ -262,65 +280,100 @@ public class Record_auto_gyro extends LinearOpMode {
             hwmap.lock(isLocked);
 
             //reset encoders
-            if (gamepad2.start) {
+            if(gamepad2.start && gamepad2.x){
                 hwmap.reset();
             }
 
 
-            if (gamepad2.y && !press) {
-                cos = !cos;
+            if(gamepad2.y && !press){
+                cos=!cos;
             }
 
-            if (gamepad2.y) {
-                press = true;
-            } else {
-                press = false;
+            if(gamepad2.y){
+                press=true;
+            }
+            else{
+                press=false;
             }
 
-            telemetry.addData("cos", cos);
+            telemetry.addData("cos",cos);
             telemetry.addLine()
                     .addData("dat", hwmap.print());
-            //telemetry.addData("gyro",hwmap.gyro.getHeading());
             telemetry.update();
 
             //setpoints
             if (gamepad2.dpad_up) {
-                armSetPoint = -2600;
-                if (hwmap.leftArm.getCurrentPosition() < armSetPoint + 500 && hwmap.leftArm.getCurrentPosition() > armSetPoint - 500) {
-                    armExtendSetPoint = 1024;
+
+                hwmap.leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                hwmap.rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                armSetPoint = 1000;
+                if (hwmap.leftArm.getCurrentPosition() < armSetPoint + 1500 && hwmap.leftArm.getCurrentPosition() > armSetPoint - 1500) {
+                    armExtendSetPoint = 1100;
                 } else {
-                    armExtendSetPoint = 33;
+                    armExtendSetPoint = 250;
                 }
                 armPIDActive = true;
             } else if (gamepad2.dpad_down) {
-                armSetPoint = -6286;
-                if (hwmap.leftArm.getCurrentPosition() < armSetPoint + 500 && hwmap.leftArm.getCurrentPosition() > armSetPoint - 500) {
-                    armExtendSetPoint = 625;
+                hwmap.leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                hwmap.rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                armSetPoint = 5066;
+                if (hwmap.leftArm.getCurrentPosition() < armSetPoint + 800 && hwmap.leftArm.getCurrentPosition() > armSetPoint - 800) {
+                    armExtendSetPoint = 450;
                 } else {
-                    armExtendSetPoint = 33;
+                    armExtendSetPoint = 250;
                 }
 
                 armPIDActive = true;
             } else if (gamepad2.dpad_right) {
-                armSetPoint = -232;
-                armExtendSetPoint = 33;
+                hwmap.leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+                hwmap.rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+                armSetPoint = 3000;
+                armExtendSetPoint = -100;
+                armPIDActive = true;
+            } else if((gamepad2.dpad_left)) {
+                hwmap.leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                hwmap.rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                armSetPoint = -600;
+
+                armExtendSetPoint = 250;
+
+
                 armPIDActive = true;
             } else {
                 armPIDActive = false;
             }
 
+            if (gamepad2.x) {
+                isLocked = true;
+                armPIDActive=true;
+                armSetPoint=-600;
+                armExtendSetPoint=700;
+            }
+            if (gamepad2.a) {
+                isLocked = false;
+                // armPIDActive=false;
+            }
 
             if (armPIDActive) {
                 //-6652
-                double armKp = 0.002;
-                double armExtendKp = 0.002;
 
-                int armError = (hwmap.leftArm.getCurrentPosition() - 1300) - armSetPoint;
-                int armExtendError = hwmap.armExtendLeft.getCurrentPosition() - armExtendSetPoint;
+                double armKp = 0.002*nitro2;
+                if(gamepad1.x){
+                    armKp = .005*nitro2;
+                }
+                double armExtendKp = 0.006 * nitro2;
+
+                int armError = hwmap.leftArm.getCurrentPosition()  - armSetPoint;
+                int armExtendError = hwmap.armExtendRight.getCurrentPosition() - armExtendSetPoint;
 
                 double armPower = (double) armError * armKp;
                 double armExtendPower = (double) armExtendError * armExtendKp;
-
+                if(armExtendPower>.6 &&!gamepad2.dpad_right){
+                    armExtendPower=.6;
+                }
+                if(armExtendPower<-.6&&!gamepad2.dpad_right){
+                    armExtendPower=-.6;
+                }
                 hwmap.leftArm.setPower(armPower);
                 hwmap.rightArm.setPower(armPower);
                 hwmap.armExtendLeft.setPower(armExtendPower);

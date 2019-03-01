@@ -62,6 +62,8 @@ public class Auto_1 extends OpMode {
     private GoldDetector detector;
     SamplingOrderDetector.GoldLocation order= SamplingOrderDetector.GoldLocation.LEFT;
     private ElapsedTime runtime = new ElapsedTime();
+    private ElapsedTime runtime2 = new ElapsedTime();
+
     hmap hwmap = new hmap();
     int stage = 0;
 int[][] data;
@@ -114,12 +116,15 @@ int[][] dataCenter;
     //double Kg = 0.001;
     double Kg = 0;
 
-    double Kf = 0.007;
+    double Kf = 0.0025;
 
-    boolean played=false;
     boolean aligned = false;
 
-    String csvData = "leftTargetPos,leftCurrentPos,rightTargetPos,rightCurrentPos,P,I,D,F,G\r\n";
+    String csvData = "leftTargetPos,leftCurrentPos,rightTargetPos,rightCurrentPos,adjXerror,adjYerror,sumAng,sumTargetAng,feedL,feedR,GyroP,Tgyro,Cgyro\r\n";
+    //csvData += setL + ","+hwmap.lw1.getCurrentPosition()+ "," + setR + ","+ hwmap.rw1.getCurrentPosition() +","+ adjustedXError +","+ adjustedYError +"," + sumAngle+","+sumTargetAngle + "," + Kf*speedL + ","+Kf*speedR+ "," + gyroError*Kg +","+gyro+","+getAngle()+","+runtime2.seconds()+"\r\n";
+
+    boolean played=false;
+
 
     double pow = 0;
     public SoundPool mySound;
@@ -136,7 +141,7 @@ int lucio;
         File fileR = AppUtil.getInstance().getSettingsFile(readfile);
         String sdata = ReadWriteFile.readFile(fileR);
         String[] split1 = sdata.split("@");
-        dataLeft = new int[split1.length][7];
+        dataLeft = new int[split1.length][12];
         for (int i=0;i<split1.length-1;i++){
             String[] split2 = split1[i].split(",");
             for(int p=0;p<split2.length;p++){
@@ -149,7 +154,7 @@ int lucio;
         File fileR2 = AppUtil.getInstance().getSettingsFile("center.csv");
         String sdata2 = ReadWriteFile.readFile(fileR2);
         String[] split1c = sdata2.split("@");
-         dataCenter = new int[split1c.length][7];
+         dataCenter = new int[split1c.length][12];
         for (int i=0;i<split1c.length-1;i++){
             String[] split2 = split1c[i].split(",");
             for(int p=0;p<split2.length;p++){
@@ -162,7 +167,7 @@ int lucio;
         File fileRr = AppUtil.getInstance().getSettingsFile("right.csv");
         String sdatar = ReadWriteFile.readFile(fileRr);
         String[] split1r = sdatar.split("@");
-        dataRight = new int[split1r.length][7];
+        dataRight = new int[split1r.length][12];
         for (int i=0;i<split1r.length-1;i++){
             String[] split2 = split1r[i].split(",");
             for(int p=0;p<split2.length;p++){
@@ -249,6 +254,7 @@ int lucio;
         }
         hwmap.reset();
         runtime.reset();
+        runtime2.reset();
 
     }
 
@@ -314,7 +320,9 @@ telemetry.addData("runtime",runtime);
                 runtime.reset();
             }
         }
-        hwmap.arm(pow);
+        if(stage<4) {
+            hwmap.arm(pow);
+        }
         if(stage==-1){
             pow=1;
             if(hwmap.leftArm.getCurrentPosition()<3000){
@@ -327,22 +335,26 @@ telemetry.addData("runtime",runtime);
             if(pos>data.length-4){
                 stop();
             }
-        if (runtime.seconds() > .025) {
-            setL = data[pos][1];
-            setR = data[pos][0];
-            speedL =  data[pos+1][1] - data[pos][1];
-            speedR =  data[pos+1][0] - data[pos][0];
-            gyro = ((double)data[pos][2])/1000;
-            arm = data[pos][3];
-            extend = data[pos][4];
-            intake= data[pos][5];
-            intake2= data[pos][6];
-            calcNextTargetPos(speedL,speedR, 1);
-            if(pos<data.length-3) {
-                pos++;
+            if (runtime.seconds() > .05) {
+                setL = data[pos][1];
+                setR = data[pos][0];
+                speedL =  data[pos+1][1] - data[pos][1];
+                speedR =  data[pos+1][0] - data[pos][0];
+                gyro = ((double)data[pos][2])/1000;
+                arm = data[pos][3];
+                extend = data[pos][4];
+                intake= data[pos][5];
+                intake2= data[pos][6];
+
+                calcNextTargetPos(speedL,speedR, 1);
+
+                if(pos<data.length-3) {
+                    pos++;
+                }
+
+                runtime.reset();
             }
-            runtime.reset();
-        }
+
             calcNextPos(hwmap.lw1.getCurrentPosition()-previousLeftPos,hwmap.rw1.getCurrentPosition()-previousRightPos,1);
 
             previousLeftPos = hwmap.lw1.getCurrentPosition();
@@ -357,7 +369,7 @@ telemetry.addData("runtime",runtime);
             double dErrorR = errorR - previousErrorR;
             double dErrorL = errorL - previousErrorL;
 
-            double gyroError = 0;//gyro-hwmap.gyro.getHeading();
+            double gyroError = 0;//gyro-getAngle();
 
             //pr = errorR*Kp + Kd*dErrorR + Ki*sumErrorR + Kf*speedR + gyroError*Kg;
             //pl = errorL*Kp + Kd*dErrorL + Ki*sumErrorL + Kf*speedL - gyroError*Kg;
@@ -379,19 +391,62 @@ telemetry.addData("runtime",runtime);
             }
 
             double forwardPower = -adjustedYError*0.1;
-            double anglePower = -adjustedXError*0.1 - angleError*1.5;
+            double anglePower = -adjustedXError*0.1 - angleError*1.5;//1.5
 
-            if(true){
-                pr = forwardPower + anglePower;
-                pl = forwardPower - anglePower;
-            }else {
-                pr = 0;
-                pl = 0;
-            }
+
+
+                pr = forwardPower + anglePower + speedR*Kf;
+                pl = forwardPower - anglePower + speedL * Kf;
+                telemetry.addData("rightF",speedR*Kf);
+                telemetry.addData("leftF",speedL*Kf);
+
+
             hwmap.rw1.setPower(pr);
             hwmap.rw2.setPower(pr);
             hwmap.lw1.setPower(pl);
             hwmap.lw2.setPower(pl);
+
+
+
+            double armKp = 0.002;
+            double armExtendKp = 0.004;
+
+            int armError = (hwmap.leftArm.getCurrentPosition()) - arm;
+            int armExtendError = hwmap.armExtendLeft.getCurrentPosition() - extend;
+
+            double armPower = (double) armError * armKp;
+            double armExtendPower = (double) armExtendError * armExtendKp;
+
+            hwmap.leftArm.setPower(armPower);
+            hwmap.rightArm.setPower(armPower);
+            hwmap.armExtendLeft.setPower(armExtendPower);
+            hwmap.armExtendRight.setPower(armExtendPower);
+
+            telemetry.addData("Arm error", armError);
+            telemetry.addData("Arm extend error", armExtendError);
+            if(intake==1){
+                hwmap.intake2.setPosition(0.5);
+                hwmap.intake.setPosition(0.75);
+            }
+            else if(intake==-1){
+                hwmap.intake2.setPosition(.75);
+                hwmap.intake.setPosition(0.7);
+            }
+            else if(intake2==1){
+                hwmap.intake.setPosition(0.25);
+                hwmap.intake2.setPosition(0.25);
+            }
+            else if(intake2==-1){
+                hwmap.intake.setPosition(0.25);
+            }
+            else{
+                hwmap.intake.setPosition(0);
+                hwmap.intake2.setPosition(0);
+            }
+
+
+
+
 
             //telemetry.addData("pr",pr);
             //telemetry.addData("pl",pl);
@@ -405,8 +460,10 @@ telemetry.addData("runtime",runtime);
             telemetry.addData("sumX:", sumX);
             telemetry.addData("sumY",sumY);
             telemetry.addData("sumAngle",sumAngle);
+            telemetry.addData("gyroTarget",gyro);
+            //telemetry.addData("currGyro",getAngle());
 
-            csvData += setL + ","+hwmap.lw1.getCurrentPosition()+ "," + setR + ","+ hwmap.rw1.getCurrentPosition() +","+ sumTargetX +","+ sumTargetY +"," + sumTargetAngle + "," + Kf*speedL + "," + gyroError*Kg +"\r\n";
+            csvData += setL + ","+hwmap.lw1.getCurrentPosition()+ "," + setR + ","+ hwmap.rw1.getCurrentPosition() +","+ adjustedXError +","+ adjustedYError +"," + sumAngle+","+sumTargetAngle + "," + Kf*speedL + ","+Kf*speedR+ "," + gyroError*.005 +","+gyro+","+0+","+runtime2.seconds()+"\r\n";
 
             sumErrorL += errorL;
             sumErrorR += errorR;

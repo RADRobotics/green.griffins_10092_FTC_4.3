@@ -38,13 +38,15 @@ double currV=0;
     double leftDistance = 0.0;
     double rightDistanceAdjustPower = 0;
     double leftDistanceAdjustPower = 0;
+    double averageDistance = 0;
 
     public SoundPool mySound;
     public int beepID;
     int streamID;
     int streamIDy;
     boolean play = false;
-
+    double rsumI=0;
+    double lsumI=0;
 int yeahboi;
     @Override
     public void init() {
@@ -83,9 +85,29 @@ telemetry.addData("offset: ",offset);
         telemetry.addData("rightDistance: ", rightDistance);
         telemetry.addData("leftDistance: ", leftDistance);
 
+        averageDistance = ((rightDistance + leftDistance)/2);
+
+        telemetry.addData("averageDistance", averageDistance);
+
         if(gamepad1.left_bumper){
-            rightDistanceAdjustPower = 0.003 * (rightDistance - 450);
-            leftDistanceAdjustPower = 0.003 * (leftDistance - 450);
+            telemetry.addData("rightI",rsumI);
+            telemetry.addData("leftI",lsumI);
+
+            rightDistanceAdjustPower = 0.002 * (rightDistance - 450);
+            leftDistanceAdjustPower = 0.002   * (leftDistance - 450);
+            if(Math.abs(rightDistanceAdjustPower)<.15){
+                rsumI+=rightDistanceAdjustPower*.25;
+            }
+            if(Math.abs(leftDistanceAdjustPower)<.15){
+                lsumI+=leftDistanceAdjustPower*.25;
+            }
+
+//            if(Math.abs(rightDistance-450) <6){
+//                rsumI=0;
+//            }
+//            if(Math.abs(leftDistance-450) <6){
+//                lsumI=0;
+//            }
             if(rightDistanceAdjustPower>0.7){
                 rightDistanceAdjustPower=0.7;
             }
@@ -97,12 +119,17 @@ telemetry.addData("offset: ",offset);
                 leftDistanceAdjustPower=0.7;
             }
             if(leftDistanceAdjustPower<-0.7){
-                leftDistanceAdjustPower=-0.7  ;
+                leftDistanceAdjustPower=-0.7;
             }
-            hwmap.rs(rightDistanceAdjustPower);
-            hwmap.ls(leftDistanceAdjustPower);
+
+            hwmap.rs(rightDistanceAdjustPower + rsumI);
+            hwmap.ls(leftDistanceAdjustPower + lsumI);
             telemetry.addData("rightDistanceAdjustPower: ", rightDistanceAdjustPower);
             telemetry.addData("leftDistanceAdjustPower: ", leftDistanceAdjustPower);
+        }
+        else{
+            rsumI=0;
+            lsumI=0;
         }
 
         //mario sounds nitro!!!
@@ -153,25 +180,27 @@ telemetry.addData("offset: ",offset);
 
         //intake
         if (gamepad2.left_bumper) {
-            if (gamepad2.b) {
-                hwmap.intake.setPosition(0.25);
-            } else {
-                hwmap.intake.setPosition(.75);
-            }
-            telemetry.addData("test2", gamepad1.left_bumper);
-        } else {
-            hwmap.intake.setPosition(0);
+                hwmap.intake2.setPosition(.75);
+                hwmap.intake.setPosition(0.65+gamepad2.right_trigger*.1);
+           // telemetry.addData("test2", gamepad1.left_bumper);
+        } else if (gamepad2.right_bumper) {
+                hwmap.intake2.setPosition(0.5);
+                hwmap.intake.setPosition(0.75);
+            //telemetry.addData("test", gamepad1.right_bumper);
         }
+        else if(gamepad2.left_trigger>.1){
+            hwmap.intake.setPosition(0.4-gamepad2.left_trigger*.15);
+            hwmap.intake2.setPosition(0.25);
+        }
+        else if(gamepad2.b){
+            hwmap.intake2.setPosition(0.25);
+            hwmap.intake.setPosition(.5);
+        }
+        else {
 
-        if (gamepad2.right_bumper) {
-            if (gamepad2.b) {
-                hwmap.intake2.setPosition(0.25);
-            } else {
-                hwmap.intake2.setPosition(0.75);
-            }
-            telemetry.addData("test", gamepad1.right_bumper);
-        } else {
-            hwmap.intake2.setPosition(0);
+                hwmap.intake2.setPosition(.5);
+
+            hwmap.intake.setPosition(.5);
         }
 
         //ratchet stuff/arm
@@ -235,11 +264,12 @@ else{
 
         //setpoints
         if (gamepad2.dpad_up) {
+
             hwmap.leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             hwmap.rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            armSetPoint = 1700;
-            if (hwmap.leftArm.getCurrentPosition() < armSetPoint + 800 && hwmap.leftArm.getCurrentPosition() > armSetPoint - 800) {
-                armExtendSetPoint = 850;
+            armSetPoint = 1000;
+            if (hwmap.leftArm.getCurrentPosition() < armSetPoint + 1500 && hwmap.leftArm.getCurrentPosition() > armSetPoint - 1500) {
+                armExtendSetPoint = 1100;
             } else {
                 armExtendSetPoint = 250;
             }
@@ -301,7 +331,7 @@ else{
             if(gamepad1.x){
                 armKp = .005*nitro2;
             }
-            double armExtendKp = 0.002 * nitro2;
+            double armExtendKp = 0.006 * nitro2;
 
             int armError = hwmap.leftArm.getCurrentPosition() - (int)offset - armSetPoint;
             int armExtendError = hwmap.armExtendRight.getCurrentPosition() - armExtendSetPoint;

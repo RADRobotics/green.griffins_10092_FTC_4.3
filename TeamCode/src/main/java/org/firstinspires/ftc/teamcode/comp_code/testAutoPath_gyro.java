@@ -98,7 +98,7 @@ public class testAutoPath_gyro extends LinearOpMode {
     //double Kg = 0.001;
     double Kg = 0;
 
-    double Kf = 0.001;
+    double Kf = 0.0025;
 
     boolean aligned = false;
 
@@ -223,7 +223,7 @@ if(step==-2){
 }
 
             if (step == -1) {
-                if (runtime.seconds() > .025) {
+                if (runtime.seconds() > .05) {
                     setL = data[pos][1];
                     setR = data[pos][0];
                     speedL =  data[pos+1][1] - data[pos][1];
@@ -282,9 +282,12 @@ if(step==-2){
                 double anglePower = -adjustedXError*0.1 - angleError*1.5;//1.5
 
 
-                if(gamepad1.y){
+                if(gamepad1.y || gamepad2.y){
                     pr = forwardPower + anglePower + speedR*Kf;
                     pl = forwardPower - anglePower + speedL * Kf;
+                    telemetry.addData("rightF",speedR*Kf);
+                    telemetry.addData("leftF",speedL*Kf);
+
                 }else {
                     pr = 0;
                     pl = 0;
@@ -296,7 +299,7 @@ if(step==-2){
 
 
 
-                double armKp = 0.004;
+                double armKp = 0.002;
                 double armExtendKp = 0.004;
 
                 int armError = (hwmap.leftArm.getCurrentPosition()) - arm;
@@ -313,24 +316,23 @@ if(step==-2){
                 telemetry.addData("Arm error", armError);
                 telemetry.addData("Arm extend error", armExtendError);
                 if(intake==1){
-                    hwmap.intake2.setPosition(0.75);
+                    hwmap.intake2.setPosition(0.5);
+                    hwmap.intake.setPosition(0.75);
                 }
                 else if(intake==-1){
+                    hwmap.intake2.setPosition(.75);
+                    hwmap.intake.setPosition(0.7);
+                }
+                else if(intake2==1){
+                    hwmap.intake.setPosition(0.25);
                     hwmap.intake2.setPosition(0.25);
-                }
-                else{
-                    hwmap.intake2.setPosition(0);
-                }
-
-
-                if(intake2==1){
-                    hwmap.intake.setPosition(.75);
                 }
                 else if(intake2==-1){
                     hwmap.intake.setPosition(0.25);
                 }
                 else{
                     hwmap.intake.setPosition(0);
+                    hwmap.intake2.setPosition(0);
                 }
 
 
