@@ -125,6 +125,13 @@ public class hmap
         lw1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         lw1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
+    public void driveReset(){
+        rw1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rw1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        lw1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        lw1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
     /* Initialize standard Hardware interfaces */
     public void initGyro(){
         gyro = new gyroCompass(hwMap);

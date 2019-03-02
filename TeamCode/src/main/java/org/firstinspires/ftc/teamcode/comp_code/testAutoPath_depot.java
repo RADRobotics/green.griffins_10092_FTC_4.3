@@ -18,9 +18,9 @@ import java.io.File;
 import static java.lang.Integer.parseInt;
 
 //dab
-@Autonomous(name = "testAutoPath_gyro", group = "Prototyping")
+@Autonomous(name = "testAutoPath_depot", group = "Prototyping")
 
-public class testAutoPath_gyro extends LinearOpMode {
+public class testAutoPath_depot extends LinearOpMode {
     hmap hwmap = new hmap();
     BNO055IMU imu;
     Orientation lastAngles = new Orientation();
@@ -108,7 +108,7 @@ public class testAutoPath_gyro extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
 
         telemetry.addData("reading left...","");
-        String readfile = "left.csv";
+        String readfile = "left_depot.csv";
         File fileR = AppUtil.getInstance().getSettingsFile(readfile);
         String sdata = ReadWriteFile.readFile(fileR);
         String[] split1 = sdata.split("@");
@@ -121,7 +121,7 @@ public class testAutoPath_gyro extends LinearOpMode {
         }
 
         telemetry.addData("reading center...","");
-        File fileR2 = AppUtil.getInstance().getSettingsFile("center.csv");
+        File fileR2 = AppUtil.getInstance().getSettingsFile("center_depot.csv");
         String sdata2 = ReadWriteFile.readFile(fileR2);
         String[] split1c = sdata2.split("@");
         int[][] dataCenter = new int[split1c.length][12];
@@ -134,7 +134,7 @@ public class testAutoPath_gyro extends LinearOpMode {
         }
 
         telemetry.addData("reading right...","");
-        File fileRr = AppUtil.getInstance().getSettingsFile("right.csv");
+        File fileRr = AppUtil.getInstance().getSettingsFile("right_depot.csv");
         String sdatar = ReadWriteFile.readFile(fileRr);
         String[] split1r = sdatar.split("@");
         int[][] dataRight = new int[split1r.length][12];
@@ -152,7 +152,7 @@ public class testAutoPath_gyro extends LinearOpMode {
 
         hwmap.init(hardwareMap);
         hwmap.initGyro();
-        hwmap.reset();
+        hwmap.driveReset();
 
 
         step = -2;

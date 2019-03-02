@@ -267,9 +267,9 @@ else{
 
             hwmap.leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             hwmap.rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            armSetPoint = 1000;
-            if (hwmap.leftArm.getCurrentPosition() < armSetPoint + 1500 && hwmap.leftArm.getCurrentPosition() > armSetPoint - 1500) {
-                armExtendSetPoint = 1100;
+            armSetPoint = 1500;
+            if (hwmap.leftArm.getCurrentPosition() < armSetPoint + 2500 && hwmap.leftArm.getCurrentPosition() > armSetPoint - 2500) {
+                armExtendSetPoint = 1200;
             } else {
                 armExtendSetPoint = 250;
             }
@@ -278,8 +278,11 @@ else{
             hwmap.leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             hwmap.rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             armSetPoint = 5066;
-            if (hwmap.leftArm.getCurrentPosition() < armSetPoint + 800 && hwmap.leftArm.getCurrentPosition() > armSetPoint - 800) {
-                armExtendSetPoint = 450;
+            if(hwmap.leftArm.getCurrentPosition() < 1210 + 500 && hwmap.leftArm.getCurrentPosition() > 1210 - 500){
+                armExtendSetPoint = 1100;
+            }
+            else if (hwmap.leftArm.getCurrentPosition() < armSetPoint + 800 && hwmap.leftArm.getCurrentPosition() > armSetPoint - 800) {
+                armExtendSetPoint = 350;
             } else {
                 armExtendSetPoint = 250;
             }
@@ -300,7 +303,13 @@ else{
 
 
             armPIDActive = true;
-        } else {
+        }
+        else if (gamepad2.x) {
+            isLocked = true;
+            armPIDActive=true;
+            armSetPoint=-1000;
+            armExtendSetPoint=700;
+        }else {
             armPIDActive = false;
         }
         if((gamepad1.dpad_left) && !yeaboi){
@@ -313,12 +322,7 @@ else{
             yeaboi=false;
             mySound.stop(streamIDy);
         }
-        if (gamepad2.x) {
-            isLocked = true;
-            armPIDActive=true;
-            armSetPoint=-600;
-            armExtendSetPoint=700;
-        }
+
         if (gamepad2.a) {
             isLocked = false;
            // armPIDActive=false;

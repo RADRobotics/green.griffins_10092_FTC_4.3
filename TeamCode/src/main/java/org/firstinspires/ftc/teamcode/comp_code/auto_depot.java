@@ -31,19 +31,16 @@ package org.firstinspires.ftc.teamcode.comp_code;
 
 import android.media.AudioManager;
 import android.media.SoundPool;
-import android.view.SoundEffectConstants;
 
 import com.disnodeteam.dogecv.CameraViewDisplay;
 import com.disnodeteam.dogecv.DogeCV;
 import com.disnodeteam.dogecv.detectors.roverrukus.GoldDetector;
 import com.disnodeteam.dogecv.detectors.roverrukus.SamplingOrderDetector;
-import com.qualcomm.ftccommon.SoundPlayer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.ReadWriteFile;
 
-import org.firstinspires.ftc.ftccommon.external.SoundPlayingRobotMonitor;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.teamcode.R;
 import org.firstinspires.ftc.teamcode.utils.hmap;
@@ -55,9 +52,9 @@ import java.io.File;
 import static java.lang.Integer.parseInt;
 
 
-@Autonomous(name="Auto_1", group="DogeCV")
+@Autonomous(name="auto_depot", group="DogeCV")
 
-public class Auto_1 extends OpMode {
+public class auto_depot extends OpMode {
     // Detector object
     private GoldDetector detector;
     SamplingOrderDetector.GoldLocation order= SamplingOrderDetector.GoldLocation.LEFT;
@@ -137,7 +134,7 @@ int lucio;
         impossible = hardwareMap.appContext.getResources().getIdentifier("mission_nightwing", "raw", hardwareMap.appContext.getPackageName());
         lucio = hardwareMap.appContext.getResources().getIdentifier("lucio", "raw", hardwareMap.appContext.getPackageName());
         telemetry.addData("reading left...","");
-        String readfile = "left.csv";
+        String readfile = "left_depot.csv";
         File fileR = AppUtil.getInstance().getSettingsFile(readfile);
         String sdata = ReadWriteFile.readFile(fileR);
         String[] split1 = sdata.split("@");
@@ -151,7 +148,7 @@ int lucio;
         }
 
         telemetry.addData("reading center...","");
-        File fileR2 = AppUtil.getInstance().getSettingsFile("center.csv");
+        File fileR2 = AppUtil.getInstance().getSettingsFile("center_depot.csv");
         String sdata2 = ReadWriteFile.readFile(fileR2);
         String[] split1c = sdata2.split("@");
          dataCenter = new int[split1c.length][12];
@@ -164,7 +161,7 @@ int lucio;
         }
 
         telemetry.addData("reading right...","");
-        File fileRr = AppUtil.getInstance().getSettingsFile("right.csv");
+        File fileRr = AppUtil.getInstance().getSettingsFile("right_depot.csv");
         String sdatar = ReadWriteFile.readFile(fileRr);
         String[] split1r = sdatar.split("@");
         dataRight = new int[split1r.length][12];

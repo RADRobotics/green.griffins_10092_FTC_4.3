@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.comp_code;
+package org.firstinspires.ftc.teamcode;
 
 import android.media.AudioManager;
 import android.media.SoundPool;

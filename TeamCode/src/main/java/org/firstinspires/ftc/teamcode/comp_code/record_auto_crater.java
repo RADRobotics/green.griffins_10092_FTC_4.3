@@ -20,9 +20,9 @@ import org.firstinspires.ftc.teamcode.utils.hmap;
 
 import java.io.File;
 
-@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "record_auto_gyro", group = "Competition")
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "record_auto_crater", group = "Competition")
 
-public class Record_auto_gyro extends LinearOpMode {
+public class record_auto_crater extends LinearOpMode {
     hmap hwmap = new hmap();
 
     private ElapsedTime runtime = new ElapsedTime();
@@ -60,7 +60,7 @@ public class Record_auto_gyro extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         hwmap.init(hardwareMap);
         //hwmap.initGyro();
-        hwmap.reset();
+        //hwmap.reset();
         mySound = new SoundPool(1, AudioManager.STREAM_MUSIC, 0);
         beepID = mySound.load(hardwareMap.appContext, R.raw.mario, 1);
 
@@ -280,8 +280,8 @@ public class Record_auto_gyro extends LinearOpMode {
             hwmap.lock(isLocked);
 
             //reset encoders
-            if(gamepad2.start && gamepad2.x){
-                hwmap.reset();
+            if(gamepad2.start && gamepad2.y){
+                hwmap.driveReset();
             }
 
 
