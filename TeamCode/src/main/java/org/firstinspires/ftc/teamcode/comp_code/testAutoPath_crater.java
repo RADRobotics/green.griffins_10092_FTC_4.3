@@ -191,7 +191,7 @@ runtime.reset();
 runtime2.reset();
         resetAngle();
 
-        hwmap.reset();
+        hwmap.driveReset();
 
         while (opModeIsActive()) {
             hwmap.lock(false);
