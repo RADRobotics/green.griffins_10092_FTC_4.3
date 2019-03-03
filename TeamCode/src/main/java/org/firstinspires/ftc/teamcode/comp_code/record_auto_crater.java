@@ -51,9 +51,9 @@ public class record_auto_crater extends LinearOpMode {
 
     int record = 0;
 
-    BNO055IMU imu;
-    Orientation lastAngles = new Orientation();
-    double                  globalAngle;
+   // BNO055IMU imu;
+   // Orientation lastAngles = new Orientation();
+    //double                  globalAngle;
 
 
     @Override
@@ -74,28 +74,28 @@ public class record_auto_crater extends LinearOpMode {
         // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
         // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
         // and named "imu".
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
+       // imu = hardwareMap.get(BNO055IMU.class, "imu");
 
-        imu.initialize(parameters);
+       // imu.initialize(parameters);
 
         telemetry.addData("Mode", "calibrating...");
         telemetry.update();
 
         // make sure the imu gyro is calibrated before continuing.
-        while (!isStopRequested() && !imu.isGyroCalibrated())
-        {
-            sleep(50);
-            idle();
-        }
+//        while (!isStopRequested() && !imu.isGyroCalibrated())
+//        {
+//            sleep(50);
+//            idle();
+//        }
 
         telemetry.addData("Mode", "waiting for start");
-        telemetry.addData("imu calib status", imu.getCalibrationStatus().toString());
+        //telemetry.addData("imu calib status", imu.getCalibrationStatus().toString());
         telemetry.update();
 
         // wait for start button.
 
         waitForStart();
-        resetAngle();
+        //resetAngle();
 
         while (opModeIsActive()) {
 
@@ -134,7 +134,7 @@ public class record_auto_crater extends LinearOpMode {
                         intake2 = 0;
                     }
                     //6
-                    thing += (hwmap.rw1.getCurrentPosition()) + "," + (hwmap.lw1.getCurrentPosition()) + "," + (int)(getAngle()*1000) + "," + hwmap.leftArm.getCurrentPosition() + "," + hwmap.armExtendLeft.getCurrentPosition() + "," + intake + "," + intake2 +"@";//hwmap.gyro.getHeading()*1000
+                    thing += (hwmap.rw1.getCurrentPosition()) + "," + (hwmap.lw1.getCurrentPosition()) + "," + (int)(0*1000) + "," + hwmap.leftArm.getCurrentPosition() + "," + hwmap.armExtendLeft.getCurrentPosition() + "," + intake + "," + intake2 +"@";//hwmap.gyro.getHeading()*1000
                     telemetry.addData("sent", "");
                     runtime.reset();
                 }
@@ -388,39 +388,39 @@ public class record_auto_crater extends LinearOpMode {
     }
     //methods here
 
-    private void resetAngle()
-    {
-        lastAngles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-
-        globalAngle = 0;
-    }
-
-    /**
-     * Get current cumulative angle rotation from last reset.
-     * @return Angle in degrees. + = left, - = right.
-     */
-    private double getAngle()
-    {
-        // We experimentally determined the Z axis is the axis we want to use for heading angle.
-        // We have to process the angle because the imu works in euler angles so the Z axis is
-        // returned as 0 to +180 or 0 to -180 rolling back to -179 or +179 when rotation passes
-        // 180 degrees. We detect this transition and track the total cumulative angle of rotation.
-
-        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-
-        double deltaAngle = angles.firstAngle - lastAngles.firstAngle;
-
-        if (deltaAngle < -180)
-            deltaAngle += 360;
-        else if (deltaAngle > 180)
-            deltaAngle -= 360;
-
-        globalAngle += deltaAngle;
-
-        lastAngles = angles;
-
-        return globalAngle;
-    }
+//    private void resetAngle()
+//    {
+//        lastAngles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+//
+//        globalAngle = 0;
+//    }
+//
+//    /**
+//     * Get current cumulative angle rotation from last reset.
+//     * @return Angle in degrees. + = left, - = right.
+//     */
+//    private double getAngle()
+//    {
+//        // We experimentally determined the Z axis is the axis we want to use for heading angle.
+//        // We have to process the angle because the imu works in euler angles so the Z axis is
+//        // returned as 0 to +180 or 0 to -180 rolling back to -179 or +179 when rotation passes
+//        // 180 degrees. We detect this transition and track the total cumulative angle of rotation.
+//
+//        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+//
+//        double deltaAngle = angles.firstAngle - lastAngles.firstAngle;
+//
+//        if (deltaAngle < -180)
+//            deltaAngle += 360;
+//        else if (deltaAngle > 180)
+//            deltaAngle -= 360;
+//
+//        globalAngle += deltaAngle;
+//
+//        lastAngles = angles;
+//
+//        return globalAngle;
+//    }
 
 
 

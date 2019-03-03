@@ -236,7 +236,7 @@ if(step==-2){
 
                     calcNextTargetPos(speedL,speedR, 1);
 
-                    if((pos+2)<data.length) {
+                    if(pos<data.length-3) {
                         pos++;
                     }
 
@@ -257,7 +257,7 @@ if(step==-2){
                 double dErrorR = errorR - previousErrorR;
                 double dErrorL = errorL - previousErrorL;
 
-                double gyroError = gyro-getAngle();
+                double gyroError = 0;//gyro-getAngle();
 
                 //pr = errorR*Kp + Kd*dErrorR + Ki*sumErrorR + Kf*speedR + gyroError*Kg;
                 //pl = errorL*Kp + Kd*dErrorL + Ki*sumErrorL + Kf*speedL - gyroError*Kg;
@@ -282,16 +282,13 @@ if(step==-2){
                 double anglePower = -adjustedXError*0.1 - angleError*1.5;//1.5
 
 
-                if(gamepad1.y || gamepad2.y){
-                    pr = forwardPower + anglePower + speedR*Kf;
-                    pl = forwardPower - anglePower + speedL * Kf;
-                    telemetry.addData("rightF",speedR*Kf);
-                    telemetry.addData("leftF",speedL*Kf);
 
-                }else {
-                    pr = 0;
-                    pl = 0;
-                }
+                pr = forwardPower + anglePower + speedR*Kf;
+                pl = forwardPower - anglePower + speedL * Kf;
+                telemetry.addData("rightF",speedR*Kf);
+                telemetry.addData("leftF",speedL*Kf);
+
+
                 hwmap.rw1.setPower(pr);
                 hwmap.rw2.setPower(pr);
                 hwmap.lw1.setPower(pl);
@@ -352,9 +349,9 @@ if(step==-2){
                 telemetry.addData("sumY",sumY);
                 telemetry.addData("sumAngle",sumAngle);
                 telemetry.addData("gyroTarget",gyro);
-                telemetry.addData("currGyro",getAngle());
+                //telemetry.addData("currGyro",getAngle());
 
-                csvData += setL + ","+hwmap.lw1.getCurrentPosition()+ "," + setR + ","+ hwmap.rw1.getCurrentPosition() +","+ adjustedXError +","+ adjustedYError +"," + sumAngle+","+sumTargetAngle + "," + Kf*speedL + ","+Kf*speedR+ "," + gyroError*.005 +","+gyro+","+getAngle()+","+runtime2.seconds()+"\r\n";
+                csvData += setL + ","+hwmap.lw1.getCurrentPosition()+ "," + setR + ","+ hwmap.rw1.getCurrentPosition() +","+ adjustedXError +","+ adjustedYError +"," + sumAngle+","+sumTargetAngle + "," + Kf*speedL + ","+Kf*speedR+ "," + gyroError*.005 +","+gyro+","+0+","+runtime2.seconds()+"\r\n";
 
                 sumErrorL += errorL;
                 sumErrorR += errorR;
